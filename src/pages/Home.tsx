@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Preloader } from "@/components/Preloader";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
@@ -11,11 +10,7 @@ import { FAQs } from "@/components/FAQs";
 import { Join } from "@/components/Join";
 import { Footer } from "@/components/Footer";
 
-export const Route = createFileRoute("/")({
-  component: HomePage,
-});
-
-function HomePage() {
+export default function HomePage() {
   return (
     <>
       <Preloader />

@@ -1,13 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
-export const Route = createFileRoute("/admin/login")({
-  component: AdminLogin,
-});
-
-function AdminLogin() {
+export default function AdminLogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +26,7 @@ function AdminLogin() {
       setError(err.message);
       return;
     }
-    navigate({ to: "/admin" });
+    navigate("/admin");
   }
 
   return (
