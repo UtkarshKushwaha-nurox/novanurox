@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   CheckCircle2,
@@ -12,11 +12,7 @@ import {
 } from "lucide-react";
 import { supabase, supabaseConfigured, type Signup } from "@/lib/supabase";
 
-export const Route = createFileRoute("/admin/")({
-  component: AdminDashboard,
-});
-
-function AdminDashboard() {
+export default function AdminDashboard() {
   const navigate = useNavigate();
   const [authChecked, setAuthChecked] = useState(false);
   const [authed, setAuthed] = useState(false);
@@ -27,7 +23,6 @@ function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // Auth gate
   useEffect(() => {
     if (!supabaseConfigured) {
       setAuthChecked(true);
@@ -36,7 +31,7 @@ function AdminDashboard() {
     supabase.auth.getSession().then(({ data }) => {
       const session = data.session;
       if (!session) {
-        navigate({ to: "/admin/login" });
+        navigate("/admin/login");
         return;
       }
       setAuthed(true);
@@ -46,7 +41,7 @@ function AdminDashboard() {
     const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
       if (!session) {
         setAuthed(false);
-        navigate({ to: "/admin/login" });
+        navigate("/admin/login");
       }
     });
     return () => sub.subscription.unsubscribe();
@@ -87,7 +82,7 @@ function AdminDashboard() {
 
   async function logout() {
     await supabase.auth.signOut();
-    navigate({ to: "/admin/login" });
+    navigate("/admin/login");
   }
 
   if (!supabaseConfigured) {
@@ -125,7 +120,6 @@ function AdminDashboard() {
 
   return (
     <div className="min-h-screen pb-20">
-      {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -162,7 +156,6 @@ function AdminDashboard() {
           Manage Alpha Batch signups, mark payments, and contact users on WhatsApp.
         </p>
 
-        {/* Stats */}
         <div className="grid sm:grid-cols-3 gap-4 mt-6">
           <Stat label="Total Signups" value={signups.length} />
           <Stat label="Paid" value={paidCount} accent />
