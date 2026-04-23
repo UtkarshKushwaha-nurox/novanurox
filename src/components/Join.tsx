@@ -139,14 +139,6 @@ export function Join() {
                   <Clock size={16} className="text-primary" />
                   <span>I will contact you within 24 hours to settle the payment.</span>
                 </div>
-                <div className="mt-6">
-                  <button
-                    onClick={() => setSuccess(false)}
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Submit another entry
-                  </button>
-                </div>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
