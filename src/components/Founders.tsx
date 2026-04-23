@@ -1,4 +1,7 @@
 import { Trophy, Lightbulb } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import founderUtkarsh from "@/assets/founder-utkarsh.jpeg";
+import cofounderUmang from "@/assets/cofounder-umang.jpeg";
 
 const FOUNDERS = [
   {
@@ -10,6 +13,7 @@ const FOUNDERS = [
     achievement: "Winner & Top Scorer — 7-Day Technical Fix-a-thon (2026)",
     icon: Trophy,
     initials: "UK",
+    photo: founderUtkarsh,
   },
   {
     name: "Umang Kushwaha",
@@ -20,12 +24,34 @@ const FOUNDERS = [
     achievement: "Driving India's AI-first education movement",
     icon: Lightbulb,
     initials: "UK",
+    photo: cofounderUmang,
   },
 ];
 
 export function Founders() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [visibleCards, setVisibleCards] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idx = Number((entry.target as HTMLElement).dataset.idx);
+            setVisibleCards((prev) => new Set(prev).add(idx));
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    const cards = sectionRef.current?.querySelectorAll("[data-idx]");
+    cards?.forEach((c) => observer.observe(c));
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section id="founders" className="py-20 md:py-28 relative">
+    <section id="founders" ref={sectionRef} className="py-20 md:py-28 relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center">
           <span className="text-xs uppercase tracking-[0.3em] text-primary">Owners</span>
@@ -38,49 +64,63 @@ export function Founders() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mt-14 max-w-5xl mx-auto">
-          {FOUNDERS.map((f) => (
-            <article
-              key={f.name}
-              className="rounded-2xl bg-gradient-card border border-border hover:border-primary/40 transition-smooth shadow-card overflow-hidden"
-            >
-              <div className="p-6 md:p-8">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <div className="absolute inset-0 rounded-full bg-gradient-neon blur-md opacity-50" />
-                    <div className="relative h-16 w-16 rounded-full bg-gradient-neon flex items-center justify-center font-display font-bold text-background text-xl">
-                      {f.initials}
+          {FOUNDERS.map((f, idx) => {
+            const isVisible = visibleCards.has(idx);
+            return (
+              <article
+                key={f.name}
+                data-idx={idx}
+                style={{ transitionDelay: `${idx * 150}ms` }}
+                className={`rounded-2xl bg-gradient-card border border-border hover:border-primary/40 shadow-card overflow-hidden transition-all duration-700 ease-out hover:-translate-y-2 hover:shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.4)] ${
+                  isVisible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-12"
+                }`}
+              >
+                <div className="p-6 md:p-8">
+                  <div className="flex items-center gap-4">
+                    <div className="relative shrink-0">
+                      <div className="absolute inset-0 rounded-full bg-gradient-neon blur-md opacity-60 animate-pulse" />
+                      <div className="relative h-20 w-20 rounded-full overflow-hidden ring-2 ring-primary/40 bg-gradient-neon">
+                        <img
+                          src={f.photo}
+                          alt={`${f.name} — ${f.role}`}
+                          className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
+                          loading="lazy"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-display text-xl md:text-2xl font-bold">{f.name}</h3>
+                      <p className="text-sm text-primary">{f.role}</p>
                     </div>
                   </div>
-                  <div>
-                    <h3 className="font-display text-xl md:text-2xl font-bold">{f.name}</h3>
-                    <p className="text-sm text-primary">{f.role}</p>
+
+                  <p className="mt-5 text-base font-display italic text-foreground/90">
+                    &ldquo;{f.quote}&rdquo;
+                  </p>
+
+                  <p className="mt-4 text-sm text-muted-foreground leading-relaxed">{f.bio}</p>
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {f.skills.map((s) => (
+                      <span
+                        key={s}
+                        className="px-3 py-1 rounded-full text-xs border border-border bg-secondary/50 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
+                    <f.icon size={18} className="text-primary mt-0.5 shrink-0" />
+                    <p className="text-xs md:text-sm text-foreground/90">{f.achievement}</p>
                   </div>
                 </div>
-
-                <p className="mt-5 text-base font-display italic text-foreground/90">
-                  &ldquo;{f.quote}&rdquo;
-                </p>
-
-                <p className="mt-4 text-sm text-muted-foreground leading-relaxed">{f.bio}</p>
-
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {f.skills.map((s) => (
-                    <span
-                      key={s}
-                      className="px-3 py-1 rounded-full text-xs border border-border bg-secondary/50 text-muted-foreground"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="mt-5 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
-                  <f.icon size={18} className="text-primary mt-0.5 shrink-0" />
-                  <p className="text-xs md:text-sm text-foreground/90">{f.achievement}</p>
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
