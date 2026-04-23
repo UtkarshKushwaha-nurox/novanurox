@@ -77,26 +77,22 @@ export function Founders() {
                     : "opacity-0 translate-y-12"
                 }`}
               >
-                <div className="p-6 md:p-8">
-                  <div className="flex items-center gap-4">
-                    <div className="relative shrink-0">
-                      <div className="absolute inset-0 rounded-full bg-gradient-neon blur-md opacity-60 animate-pulse" />
-                      <div className="relative h-20 w-20 rounded-full overflow-hidden ring-2 ring-primary/40 bg-gradient-neon">
-                        <img
-                          src={f.photo}
-                          alt={`${f.name} — ${f.role}`}
-                          className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
-                          loading="lazy"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-display text-xl md:text-2xl font-bold">{f.name}</h3>
-                      <p className="text-sm text-primary">{f.role}</p>
-                    </div>
+                <div className="relative aspect-[4/5] overflow-hidden bg-gradient-neon">
+                  <img
+                    src={f.photo}
+                    alt={`${f.name} — ${f.role}`}
+                    className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h3 className="font-display text-2xl md:text-3xl font-bold drop-shadow-lg">{f.name}</h3>
+                    <p className="text-sm text-primary font-medium">{f.role}</p>
                   </div>
+                </div>
 
-                  <p className="mt-5 text-base font-display italic text-foreground/90">
+                <div className="p-6 md:p-8">
+                  <p className="text-base font-display italic text-foreground/90">
                     &ldquo;{f.quote}&rdquo;
                   </p>
 
