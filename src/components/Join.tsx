@@ -58,6 +58,32 @@ export function Join() {
     }
 
     setSubmitting(true);
+
+    // Check for existing email or WhatsApp
+    const { data: existing, error: checkError } = await supabase
+      .from("signups")
+      .select("email, whatsapp")
+      .or(`email.eq.${result.data.email},whatsapp.eq.${result.data.whatsapp}`)
+      .limit(1);
+
+    if (checkError) {
+      setSubmitting(false);
+      setSubmitError(checkError.message);
+      return;
+    }
+
+    if (existing && existing.length > 0) {
+      setSubmitting(false);
+      const dup = existing[0];
+      if (dup.email === result.data.email) {
+        setErrors((e) => ({ ...e, email: "This email is already registered" }));
+      }
+      if (dup.whatsapp === result.data.whatsapp) {
+        setErrors((e) => ({ ...e, whatsapp: "This WhatsApp number is already registered" }));
+      }
+      return;
+    }
+
     const { error } = await supabase.from("signups").insert({
       full_name: result.data.full_name,
       email: result.data.email,
@@ -67,7 +93,12 @@ export function Join() {
     setSubmitting(false);
 
     if (error) {
-      setSubmitError(error.message);
+      // Handle DB unique constraint violation
+      if (error.code === "23505" || error.message.toLowerCase().includes("duplicate")) {
+        setSubmitError("This email or WhatsApp number is already registered.");
+      } else {
+        setSubmitError(error.message);
+      }
       return;
     }
 
