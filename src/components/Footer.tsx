@@ -1,5 +1,4 @@
 import { Mail, Phone } from "lucide-react";
-import { Link } from "react-router-dom";
 
 export function Footer() {
   return (
@@ -41,14 +40,6 @@ export function Footer() {
                   </a>
                 </li>
               ))}
-              <li>
-                <Link
-                  to="/admin"
-                  className="text-muted-foreground hover:text-primary transition-smooth"
-                >
-                  Admin
-                </Link>
-              </li>
             </ul>
           </div>
 
