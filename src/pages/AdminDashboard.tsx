@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { supabase, supabaseConfigured, type Signup } from "@/lib/supabase";
+import { isAdminEmail } from "@/lib/admin";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -34,14 +35,24 @@ export default function AdminDashboard() {
         navigate("/admin/login");
         return;
       }
+      const userEmail = session.user.email ?? null;
+      if (!isAdminEmail(userEmail)) {
+        // Authenticated but not the admin — sign out and send to 404.
+        supabase.auth.signOut().finally(() => navigate("/404", { replace: true }));
+        return;
+      }
       setAuthed(true);
-      setEmail(session.user.email ?? null);
+      setEmail(userEmail);
       setAuthChecked(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
       if (!session) {
         setAuthed(false);
         navigate("/admin/login");
+        return;
+      }
+      if (!isAdminEmail(session.user.email)) {
+        supabase.auth.signOut().finally(() => navigate("/404", { replace: true }));
       }
     });
     return () => sub.subscription.unsubscribe();
