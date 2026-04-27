@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { supabase, supabaseConfigured, type Signup } from "@/lib/supabase";
-import { isAdminEmail } from "@/lib/admin";
+import { clearAdminSession, isAdminEmail } from "@/lib/admin";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -40,8 +40,10 @@ export default function AdminDashboard() {
       }
       const userEmail = session.user.email ?? null;
       if (!isAdminEmail(userEmail)) {
-        // Authenticated but not the admin — kill session and bounce to 404 immediately.
-        await supabase.auth.signOut();
+        // Authenticated but not the admin — fully reset session/storage and bounce.
+        // This handles the hard-refresh case where a stale non-admin session
+        // is hydrated from localStorage before any UI renders.
+        await clearAdminSession();
         if (!cancelled) navigate("/404", { replace: true });
         return;
       }
@@ -58,7 +60,7 @@ export default function AdminDashboard() {
       }
       if (!isAdminEmail(session.user.email)) {
         setAuthed(false);
-        supabase.auth.signOut().finally(() => navigate("/404", { replace: true }));
+        clearAdminSession().finally(() => navigate("/404", { replace: true }));
       }
     });
     return () => {
