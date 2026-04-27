@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { isAdminEmail } from "@/lib/admin";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -20,10 +21,15 @@ export default function AdminLogin() {
     }
 
     setLoading(true);
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (err) {
       setError(err.message);
+      return;
+    }
+    if (!isAdminEmail(data.user?.email)) {
+      await supabase.auth.signOut();
+      navigate("/404", { replace: true });
       return;
     }
     navigate("/admin");
