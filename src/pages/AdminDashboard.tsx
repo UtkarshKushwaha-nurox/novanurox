@@ -29,33 +29,42 @@ export default function AdminDashboard() {
       setAuthChecked(true);
       return;
     }
-    supabase.auth.getSession().then(({ data }) => {
+    let cancelled = false;
+    const verify = async () => {
+      const { data } = await supabase.auth.getSession();
       const session = data.session;
+      if (cancelled) return;
       if (!session) {
-        navigate("/admin/login");
+        navigate("/admin/login", { replace: true });
         return;
       }
       const userEmail = session.user.email ?? null;
       if (!isAdminEmail(userEmail)) {
-        // Authenticated but not the admin — sign out and send to 404.
-        supabase.auth.signOut().finally(() => navigate("/404", { replace: true }));
+        // Authenticated but not the admin — kill session and bounce to 404 immediately.
+        await supabase.auth.signOut();
+        if (!cancelled) navigate("/404", { replace: true });
         return;
       }
       setAuthed(true);
       setEmail(userEmail);
       setAuthChecked(true);
-    });
+    };
+    verify();
     const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
       if (!session) {
         setAuthed(false);
-        navigate("/admin/login");
+        navigate("/admin/login", { replace: true });
         return;
       }
       if (!isAdminEmail(session.user.email)) {
+        setAuthed(false);
         supabase.auth.signOut().finally(() => navigate("/404", { replace: true }));
       }
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, [navigate]);
 
   async function loadSignups() {
