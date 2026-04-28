@@ -91,12 +91,27 @@ export default function AdminDashboard() {
   async function loadSignups() {
     if (!supabaseConfigured) return;
     setRefreshing(true);
-    const { data, error: err } = await supabase
+    setError(null);
+    setVerifyingRls(true);
+    const { data, error: err, status } = await supabase
       .from("signups")
       .select("*")
       .order("created_at", { ascending: false });
-    if (err) setError(err.message);
-    else setSignups((data ?? []) as Signup[]);
+    setVerifyingRls(false);
+    if (err) {
+      const errWithStatus = { ...err, status } as typeof err & { status?: number };
+      if (isForbiddenError(errWithStatus)) {
+        setForbidden(true);
+        setError(
+          "Access denied by Row-Level Security. Your account does not have permission to read this table.",
+        );
+      } else {
+        setError(err.message);
+      }
+    } else {
+      setForbidden(false);
+      setSignups((data ?? []) as Signup[]);
+    }
     setLoading(false);
     setRefreshing(false);
   }
@@ -107,12 +122,17 @@ export default function AdminDashboard() {
 
   async function togglePaid(s: Signup) {
     setUpdatingId(s.id);
-    const { error: err } = await supabase
+    const { error: err, status } = await supabase
       .from("signups")
       .update({ paid: !s.paid })
       .eq("id", s.id);
     if (err) {
-      setError(err.message);
+      const errWithStatus = { ...err, status } as typeof err & { status?: number };
+      if (isForbiddenError(errWithStatus)) {
+        setError("RLS denied this update. Admin policy may not cover UPDATE.");
+      } else {
+        setError(err.message);
+      }
     } else {
       setSignups((list) =>
         list.map((x) => (x.id === s.id ? { ...x, paid: !s.paid } : x)),
