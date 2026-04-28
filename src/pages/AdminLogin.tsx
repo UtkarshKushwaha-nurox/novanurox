@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { clearAdminSession, isAdminEmail } from "@/lib/admin";
+import { ADMIN_DASHBOARD_PATH, clearAdminSession, isAdminEmail } from "@/lib/admin";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -11,23 +11,10 @@ export default function AdminLogin() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // On mount (incl. hard refresh), nuke any stale non-admin session that
-  // might be hydrated from localStorage — prevents a non-admin from being
-  // silently "logged in" when they hit /admin/login.
+  // Hard reset on mount: ALWAYS wipe any prior session before a new login
+  // attempt so stale tokens (admin or not) can't bleed into the next sign-in.
   useEffect(() => {
-    if (!supabaseConfigured) return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      const userEmail = data.session?.user.email ?? null;
-      if (data.session && !isAdminEmail(userEmail)) {
-        await clearAdminSession();
-      }
-      if (cancelled) return;
-    })();
-    return () => {
-      cancelled = true;
-    };
+    void clearAdminSession();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -48,10 +35,10 @@ export default function AdminLogin() {
     }
     if (!isAdminEmail(data.user?.email)) {
       await clearAdminSession();
-      navigate("/404", { replace: true });
+      window.location.href = "/404";
       return;
     }
-    navigate("/admin");
+    navigate(ADMIN_DASHBOARD_PATH);
   }
 
   return (
