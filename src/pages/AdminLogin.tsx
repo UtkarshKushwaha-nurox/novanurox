@@ -38,7 +38,10 @@ export default function AdminLogin() {
       window.location.href = "/404";
       return;
     }
-    navigate(ADMIN_DASHBOARD_PATH);
+    // Password OK — funnel through MFA gate. The MFA page will either
+    // enroll a new TOTP factor or challenge an existing one before
+    // letting the session reach the dashboard.
+    navigate(ADMIN_MFA_PATH);
   }
 
   return (
