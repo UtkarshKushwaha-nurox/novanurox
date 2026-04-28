@@ -2,18 +2,21 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { clearAdminSessionAndRedirect, isAdminEmail } from "@/lib/admin";
+import {
+  ADMIN_MFA_PATH,
+  clearAdminSessionAndRedirect,
+  hasAal2,
+  isAdminEmail,
+} from "@/lib/admin";
 
 /**
  * Route-level admin guard.
  *
- * Runs BEFORE the protected children mount, so a stale non-admin session
- * hydrated from localStorage on a hard refresh can never see protected UI.
- *
- * Behavior:
- *  - No session            → /admin/login
- *  - Session, non-admin    → clearAdminSession() then /404
- *  - Session, admin email  → render children
+ * Runs BEFORE the protected children mount. Requires:
+ *  1. A live Supabase session              (else → /admin/login)
+ *  2. The session belongs to the admin email (else → /404)
+ *  3. The session is AAL2 — i.e. MFA was   (else → /admin/mfa)
+ *     verified in this session
  */
 export default function RequireAdmin({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -21,7 +24,6 @@ export default function RequireAdmin({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!supabaseConfigured) {
-      // Allow the child to render its own "setup required" UI.
       setStatus("ok");
       return;
     }
@@ -36,8 +38,12 @@ export default function RequireAdmin({ children }: { children: ReactNode }) {
         return;
       }
       if (!isAdminEmail(session.user.email)) {
-        // Hard reload to /404 — no React state survives this.
         await clearAdminSessionAndRedirect("/404");
+        return;
+      }
+      // MFA gate: only AAL2 sessions may see the dashboard.
+      if (!(await hasAal2())) {
+        navigate(ADMIN_MFA_PATH, { replace: true });
         return;
       }
       if (!cancelled) setStatus("ok");
