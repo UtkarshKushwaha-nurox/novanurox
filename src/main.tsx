@@ -31,6 +31,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           }
         />
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path={ADMIN_MFA_PATH} element={<AdminMfa />} />
         {/* Legacy /admin URL no longer resolves — falls through to 404. */}
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
