@@ -5,10 +5,11 @@ import "./styles.css";
 import HomePage from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminMfa from "./pages/AdminMfa";
 import NotFound from "./pages/NotFound";
 import RequireAdmin from "./components/RequireAdmin";
 import { runAdminGuardSelfTest } from "./lib/adminGuard.selftest";
-import { ADMIN_DASHBOARD_PATH } from "./lib/admin";
+import { ADMIN_DASHBOARD_PATH, ADMIN_MFA_PATH } from "./lib/admin";
 
 if (import.meta.env.DEV) {
   // Fire-and-forget: verifies a stale non-admin localStorage session can't
