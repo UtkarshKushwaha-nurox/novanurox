@@ -5,10 +5,11 @@ import "./styles.css";
 import HomePage from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminMfa from "./pages/AdminMfa";
 import NotFound from "./pages/NotFound";
 import RequireAdmin from "./components/RequireAdmin";
 import { runAdminGuardSelfTest } from "./lib/adminGuard.selftest";
-import { ADMIN_DASHBOARD_PATH } from "./lib/admin";
+import { ADMIN_DASHBOARD_PATH, ADMIN_MFA_PATH } from "./lib/admin";
 
 if (import.meta.env.DEV) {
   // Fire-and-forget: verifies a stale non-admin localStorage session can't
@@ -30,6 +31,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           }
         />
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path={ADMIN_MFA_PATH} element={<AdminMfa />} />
         {/* Legacy /admin URL no longer resolves — falls through to 404. */}
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
