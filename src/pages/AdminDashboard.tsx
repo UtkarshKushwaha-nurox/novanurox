@@ -176,6 +176,42 @@ export default function AdminDashboard() {
 
   if (!authed) return null;
 
+  // Verifying RLS — we have a session but haven't confirmed Supabase will
+  // serve us the protected table yet. Show a dedicated loading state so the
+  // user knows we're checking permissions, not just fetching rows.
+  if (verifyingRls && loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
+        <Loader2 className="animate-spin text-primary" size={32} />
+        <p className="text-sm text-muted-foreground">
+          Verifying admin permissions…
+        </p>
+      </div>
+    );
+  }
+
+  if (forbidden) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-md text-center rounded-2xl bg-gradient-card border border-destructive/30 p-8">
+          <ShieldCheck className="mx-auto text-destructive" size={36} />
+          <h1 className="mt-3 font-display text-2xl font-bold">Access Denied</h1>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Row-Level Security blocked this request. Your account
+            <span className="text-foreground"> ({email}) </span>
+            does not satisfy the admin policy on this table.
+          </p>
+          <button
+            onClick={logout}
+            className="mt-5 inline-flex items-center justify-center rounded-md bg-gradient-neon px-5 h-10 text-sm font-bold text-background"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const paidCount = signups.filter((s) => s.paid).length;
   const totalSeats = 20;
 
