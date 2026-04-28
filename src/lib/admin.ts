@@ -9,9 +9,31 @@ export const ADMIN_EMAIL = "nuroxindiaofficial@gmail.com";
 // real auth check). The login URL stays at /admin/login so muscle memory
 // works, but the dashboard itself sits at this non-guessable path.
 export const ADMIN_DASHBOARD_PATH = "/AdminDashboardNovaNurox";
+export const ADMIN_MFA_PATH = "/admin/mfa";
 
 export function isAdminEmail(email: string | null | undefined): boolean {
   return !!email && email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
+/**
+ * Returns true only if the current Supabase session has been elevated to
+ * AAL2 (i.e. the user has presented a verified TOTP factor in this session).
+ * AAL1 = password only. AAL2 = password + MFA. Admin requires AAL2.
+ */
+export async function hasAal2(): Promise<boolean> {
+  const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (error || !data) return false;
+  return data.currentLevel === "aal2";
+}
+
+/**
+ * Returns the user's first verified TOTP factor (if any). Used to decide
+ * whether to enroll a new factor or challenge an existing one.
+ */
+export async function getVerifiedTotpFactor() {
+  const { data, error } = await supabase.auth.mfa.listFactors();
+  if (error || !data) return null;
+  return data.totp.find((f) => f.status === "verified") ?? null;
 }
 
 /**
