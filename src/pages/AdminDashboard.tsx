@@ -23,6 +23,27 @@ export default function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  // RLS verification state — true while we confirm Supabase accepts our JWT
+  // for the protected `signups` table before showing any data UI.
+  const [verifyingRls, setVerifyingRls] = useState(true);
+  const [forbidden, setForbidden] = useState(false);
+
+  // Detect Supabase / PostgREST RLS denials. PostgREST returns:
+  //   - HTTP 401/403 (status on FetchError)
+  //   - code "PGRST301" (JWT invalid) / "42501" (insufficient privilege)
+  //   - message containing "row-level security" / "permission denied"
+  function isForbiddenError(err: unknown): boolean {
+    if (!err || typeof err !== "object") return false;
+    const e = err as { code?: string; status?: number; message?: string };
+    if (e.status === 401 || e.status === 403) return true;
+    if (e.code === "PGRST301" || e.code === "42501") return true;
+    const msg = (e.message ?? "").toLowerCase();
+    return (
+      msg.includes("row-level security") ||
+      msg.includes("permission denied") ||
+      msg.includes("forbidden")
+    );
+  }
 
   useEffect(() => {
     if (!supabaseConfigured) {
