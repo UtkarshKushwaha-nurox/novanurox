@@ -41,7 +41,24 @@ export default function RequireAdmin({ children }: { children: ReactNode }) {
         await clearAdminSessionAndRedirect("/404");
         return;
       }
-      // MFA gate: only AAL2 sessions may see the dashboard.
+
+      // Hard MFA factor check: a verified TOTP factor MUST exist on the
+      // account. If MFA was never set up (or the factor isn't verified),
+      // deny access entirely — do not even reveal the MFA enrollment page.
+      const { data: factors, error: factorsErr } =
+        await supabase.auth.mfa.listFactors();
+      if (cancelled) return;
+      if (factorsErr) {
+        await clearAdminSessionAndRedirect("/404");
+        return;
+      }
+      const verifiedFactor = factors.totp.find((f) => f.status === "verified");
+      if (!verifiedFactor) {
+        await clearAdminSessionAndRedirect("/404");
+        return;
+      }
+
+      // MFA gate: only AAL2 sessions (TOTP verified this session) may enter.
       if (!(await hasAal2())) {
         navigate(ADMIN_MFA_PATH, { replace: true });
         return;
