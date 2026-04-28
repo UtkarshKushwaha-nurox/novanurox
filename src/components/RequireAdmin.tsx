@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { clearAdminSession, isAdminEmail } from "@/lib/admin";
+import { clearAdminSessionAndRedirect, isAdminEmail } from "@/lib/admin";
 
 /**
  * Route-level admin guard.
@@ -36,8 +36,8 @@ export default function RequireAdmin({ children }: { children: ReactNode }) {
         return;
       }
       if (!isAdminEmail(session.user.email)) {
-        await clearAdminSession();
-        if (!cancelled) navigate("/404", { replace: true });
+        // Hard reload to /404 — no React state survives this.
+        await clearAdminSessionAndRedirect("/404");
         return;
       }
       if (!cancelled) setStatus("ok");
