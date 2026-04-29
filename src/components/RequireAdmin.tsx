@@ -42,19 +42,21 @@ export default function RequireAdmin({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Hard MFA factor check: a verified TOTP factor MUST exist on the
-      // account. If MFA was never set up (or the factor isn't verified),
-      // deny access entirely — do not even reveal the MFA enrollment page.
+      // MFA factor check. The admin email is already verified above, so it's
+      // safe to route to enrollment if no verified factor exists yet — this
+      // is the legitimate first-time setup path.
       const { data: factors, error: factorsErr } =
         await supabase.auth.mfa.listFactors();
       if (cancelled) return;
       if (factorsErr) {
-        await clearAdminSessionAndRedirect("/404");
+        // Real API failure — bounce to MFA page so user can retry / enroll.
+        navigate(ADMIN_MFA_PATH, { replace: true });
         return;
       }
       const verifiedFactor = factors.totp.find((f) => f.status === "verified");
       if (!verifiedFactor) {
-        await clearAdminSessionAndRedirect("/404");
+        // No verified factor → enroll one. Don't 404 the legitimate admin.
+        navigate(ADMIN_MFA_PATH, { replace: true });
         return;
       }
 
