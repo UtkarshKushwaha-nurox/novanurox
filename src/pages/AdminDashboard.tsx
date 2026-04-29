@@ -72,10 +72,6 @@ export default function AdminDashboard() {
         navigate("/admin/login", { replace: true });
         return;
       }
-      if (!isAdminEmail(session.user.email)) {
-        setAuthed(false);
-        void clearAdminSessionAndRedirect("/404");
-      }
     });
     return () => {
       cancelled = true;
