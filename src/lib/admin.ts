@@ -1,19 +1,14 @@
-// Single source of truth for admin authorization.
-// Only this email is allowed to access the admin dashboard. Any other
-// authenticated user is redirected to the 404 page.
+// Admin authorization.
+// Access is gated SOLELY by Supabase auth + TOTP MFA (AAL2).
+// No email allowlist — any user with a valid Supabase session AND a verified
+// TOTP factor (AAL2) may enter the admin dashboard.
 import { supabase } from "@/lib/supabase";
-
-export const ADMIN_EMAIL = "nuroxindiaofficial@gmail.com";
 
 // Obscured admin dashboard path (security-by-obscurity layer on top of the
 // real auth check). The login URL stays at /admin/login so muscle memory
 // works, but the dashboard itself sits at this non-guessable path.
 export const ADMIN_DASHBOARD_PATH = "/AdminDashboardNovaNurox";
 export const ADMIN_MFA_PATH = "/admin/mfa";
-
-export function isAdminEmail(email: string | null | undefined): boolean {
-  return !!email && email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
-}
 
 /**
  * Returns true only if the current Supabase session has been elevated to

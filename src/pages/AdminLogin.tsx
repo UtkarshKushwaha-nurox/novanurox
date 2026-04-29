@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { ADMIN_MFA_PATH, clearAdminSession, isAdminEmail } from "@/lib/admin";
+import { ADMIN_MFA_PATH, clearAdminSession } from "@/lib/admin";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ export default function AdminLogin() {
       setError(err.message);
       return;
     }
-    if (!isAdminEmail(data.user?.email)) {
+    if (!data.user) {
       await clearAdminSession();
       window.location.href = "/404";
       return;

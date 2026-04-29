@@ -6,7 +6,6 @@ import {
   ADMIN_DASHBOARD_PATH,
   clearAdminSessionAndRedirect,
   hasAal2,
-  isAdminEmail,
 } from "@/lib/admin";
 
 type Mode = "loading" | "enroll" | "challenge" | "done";
@@ -53,10 +52,7 @@ export default function AdminMfa() {
         navigate("/admin/login", { replace: true });
         return;
       }
-      if (!isAdminEmail(session.user.email)) {
-        await clearAdminSessionAndRedirect("/404");
-        return;
-      }
+      // No email allowlist — any authenticated Supabase user proceeds to MFA.
 
       // Already MFA-verified for this session → go to dashboard.
       if (await hasAal2()) {
