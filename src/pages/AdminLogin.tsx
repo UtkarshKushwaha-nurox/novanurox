@@ -33,7 +33,7 @@ export default function AdminLogin() {
       setError(err.message);
       return;
     }
-    if (!isAdminEmail(data.user?.email)) {
+    if (!data.user) {
       await clearAdminSession();
       window.location.href = "/404";
       return;
