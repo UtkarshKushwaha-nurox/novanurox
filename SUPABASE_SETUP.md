@@ -32,14 +32,28 @@ create policy "anyone can signup"
   to anon, authenticated
   with check (true);
 
--- Only authenticated admins can read / update
-create policy "authenticated can read"
+-- Admin-only read / update / delete, scoped via JWT email claim.
+-- IMPORTANT: do NOT use `using (true)` here — that would let ANY authenticated
+-- Supabase user read all PII and toggle anyone's `paid` flag.
+create policy "admin can read"
   on public.signups for select
-  to authenticated using (true);
+  to authenticated
+  using ((auth.jwt() ->> 'email') = 'nuroxindiaofficial@gmail.com');
 
-create policy "authenticated can update"
+create policy "admin can update"
   on public.signups for update
-  to authenticated using (true) with check (true);
+  to authenticated
+  using  ((auth.jwt() ->> 'email') = 'nuroxindiaofficial@gmail.com')
+  with check ((auth.jwt() ->> 'email') = 'nuroxindiaofficial@gmail.com');
+
+create policy "admin can delete"
+  on public.signups for delete
+  to authenticated
+  using ((auth.jwt() ->> 'email') = 'nuroxindiaofficial@gmail.com');
+
+-- If you previously ran the old policies, drop them first:
+--   drop policy if exists "authenticated can read"   on public.signups;
+--   drop policy if exists "authenticated can update" on public.signups;
 
 -- Public seat counter (count of paid signups, exposed via RPC so anon can call without reading rows)
 create or replace function public.paid_count()
