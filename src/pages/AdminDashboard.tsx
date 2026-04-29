@@ -60,12 +60,7 @@ export default function AdminDashboard() {
         return;
       }
       const userEmail = session.user.email ?? null;
-      if (!isAdminEmail(userEmail)) {
-        // Invisible guard: not the admin → wipe everything and HARD redirect
-        // to /404 (not the login screen — we don't reveal admin exists).
-        await clearAdminSessionAndRedirect("/404");
-        return;
-      }
+      // No email allowlist — Supabase session + AAL2 (enforced by RequireAdmin) is the gate.
       setAuthed(true);
       setEmail(userEmail);
       setAuthChecked(true);
