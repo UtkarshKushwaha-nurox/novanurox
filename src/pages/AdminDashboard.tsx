@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { supabase, supabaseConfigured, type Signup } from "@/lib/supabase";
-import { clearAdminSessionAndRedirect, isAdminEmail } from "@/lib/admin";
+import { clearAdminSessionAndRedirect } from "@/lib/admin";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
