@@ -6,7 +6,6 @@ import {
   ADMIN_DASHBOARD_PATH,
   clearAdminSessionAndRedirect,
   hasAal2,
-  isAdminEmail,
 } from "@/lib/admin";
 
 type Mode = "loading" | "enroll" | "challenge" | "done";
