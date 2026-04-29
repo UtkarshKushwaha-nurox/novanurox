@@ -35,10 +35,7 @@ export default function RequireAdmin({ children }: { children: ReactNode }) {
         navigate("/admin/login", { replace: true });
         return;
       }
-      if (!isAdminEmail(session.user.email)) {
-        await clearAdminSessionAndRedirect("/404");
-        return;
-      }
+      // No email allowlist — Supabase session + AAL2 (TOTP) is the gate.
 
       // MFA factor check. The admin email is already verified above, so it's
       // safe to route to enrollment if no verified factor exists yet — this
