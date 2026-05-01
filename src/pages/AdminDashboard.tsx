@@ -279,121 +279,254 @@ export default function AdminDashboard() {
       </header>
 
       <div className="container mx-auto px-4 md:px-6 mt-8">
-        <div className="flex items-center gap-2">
-          <ShieldCheck size={20} className="text-primary" />
-          <h1 className="font-display text-2xl md:text-3xl font-bold">Dashboard</h1>
-        </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage Alpha Batch signups, mark payments, and contact users on WhatsApp.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={20} className="text-primary" />
+              <h1 className="font-display text-2xl md:text-3xl font-bold">Dashboard</h1>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {role === "student"
+                ? "Manage Alpha Batch signups, mark payments, and contact users on WhatsApp."
+                : "Review and approve incoming school partnership requests."}
+            </p>
+          </div>
 
-        <div className="grid sm:grid-cols-3 gap-4 mt-6">
-          <Stat label="Total Signups" value={signups.length} />
-          <Stat label="Paid" value={paidCount} accent />
-          <Stat
-            label="Seats Left"
-            value={Math.max(0, totalSeats - paidCount)}
-            danger={paidCount >= totalSeats}
-          />
-        </div>
-
-        <div className="mt-6 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold">All Signups</h2>
-          <button
-            onClick={loadSignups}
-            disabled={refreshing}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
-          >
-            <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
-          </button>
+          <div className="inline-flex rounded-lg border border-border bg-card/40 p-1 self-start">
+            <button
+              onClick={() => setRole("student")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 h-9 text-xs font-semibold transition-smooth ${
+                role === "student"
+                  ? "bg-gradient-neon text-background shadow-neon"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <GraduationCap size={14} /> Student Admin
+            </button>
+            <button
+              onClick={() => setRole("school")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 h-9 text-xs font-semibold transition-smooth ${
+                role === "school"
+                  ? "bg-gradient-neon text-background shadow-neon"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Building2 size={14} /> School Admin
+            </button>
+          </div>
         </div>
 
         {error && (
-          <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
             {error}
           </div>
         )}
 
-        <div className="mt-4 rounded-xl border border-border bg-gradient-card overflow-hidden">
-          {loading ? (
-            <div className="p-12 flex justify-center">
-              <Loader2 className="animate-spin text-primary" size={28} />
+        {role === "student" ? (
+          <>
+            <div className="grid sm:grid-cols-3 gap-4 mt-6">
+              <Stat label="Total Signups" value={signups.length} />
+              <Stat label="Paid" value={paidCount} accent />
+              <Stat
+                label="Seats Left"
+                value={Math.max(0, totalSeats - paidCount)}
+                danger={paidCount >= totalSeats}
+              />
             </div>
-          ) : signups.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground">
-              <Users className="mx-auto text-muted-foreground/40" size={36} />
-              <p className="mt-3 text-sm">No signups yet.</p>
+
+            <div className="mt-6 flex items-center justify-between">
+              <h2 className="font-display text-lg font-bold">All Signups</h2>
+              <button
+                onClick={loadSignups}
+                disabled={refreshing}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
+              >
+                <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
+              </button>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-semibold">Name</th>
-                    <th className="text-left px-4 py-3 font-semibold">Email</th>
-                    <th className="text-left px-4 py-3 font-semibold">WhatsApp</th>
-                    <th className="text-left px-4 py-3 font-semibold">City</th>
-                    <th className="text-left px-4 py-3 font-semibold">Joined</th>
-                    <th className="text-left px-4 py-3 font-semibold">Paid</th>
-                    <th className="text-right px-4 py-3 font-semibold">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {signups.map((s) => (
-                    <tr
-                      key={s.id}
-                      className="border-t border-border hover:bg-secondary/30 transition-smooth"
-                    >
-                      <td className="px-4 py-3 font-medium">{s.full_name}</td>
-                      <td className="px-4 py-3 text-muted-foreground break-all">{s.email}</td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono">+91 {s.whatsapp}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{s.city || "—"}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">
-                        {new Date(s.created_at).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => togglePaid(s)}
-                          disabled={updatingId === s.id}
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-smooth ${
-                            s.paid
-                              ? "bg-primary/15 text-primary border border-primary/30 hover:shadow-neon"
-                              : "bg-secondary text-muted-foreground border border-border hover:bg-secondary/80"
-                          }`}
+
+            <div className="mt-4 rounded-xl border border-border bg-gradient-card overflow-hidden">
+              {loading ? (
+                <div className="p-12 flex justify-center">
+                  <Loader2 className="animate-spin text-primary" size={28} />
+                </div>
+              ) : signups.length === 0 ? (
+                <div className="p-12 text-center text-muted-foreground">
+                  <Users className="mx-auto text-muted-foreground/40" size={36} />
+                  <p className="mt-3 text-sm">No signups yet.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-semibold">Name</th>
+                        <th className="text-left px-4 py-3 font-semibold">Email</th>
+                        <th className="text-left px-4 py-3 font-semibold">WhatsApp</th>
+                        <th className="text-left px-4 py-3 font-semibold">City</th>
+                        <th className="text-left px-4 py-3 font-semibold">Joined</th>
+                        <th className="text-left px-4 py-3 font-semibold">Paid</th>
+                        <th className="text-right px-4 py-3 font-semibold">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {signups.map((s) => (
+                        <tr
+                          key={s.id}
+                          className="border-t border-border hover:bg-secondary/30 transition-smooth"
                         >
-                          {updatingId === s.id ? (
-                            <Loader2 size={12} className="animate-spin" />
-                          ) : s.paid ? (
-                            <CheckCircle2 size={12} />
-                          ) : (
-                            <Circle size={12} />
-                          )}
-                          {s.paid ? "Paid" : "Unpaid"}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <a
-                          href={`https://wa.me/91${s.whatsapp}?text=${encodeURIComponent(
-                            `Hi ${s.full_name}, this is Nova Nurox Admin. Welcome to the Alpha Batch! 🚀`,
-                          )}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
-                        >
-                          <MessageCircle size={13} /> WhatsApp
-                        </a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          <td className="px-4 py-3 font-medium">{s.full_name}</td>
+                          <td className="px-4 py-3 text-muted-foreground break-all">{s.email}</td>
+                          <td className="px-4 py-3 text-muted-foreground font-mono">+91 {s.whatsapp}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{s.city || "—"}</td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs">
+                            {new Date(s.created_at).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => togglePaid(s)}
+                              disabled={updatingId === s.id}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-smooth ${
+                                s.paid
+                                  ? "bg-primary/15 text-primary border border-primary/30 hover:shadow-neon"
+                                  : "bg-secondary text-muted-foreground border border-border hover:bg-secondary/80"
+                              }`}
+                            >
+                              {updatingId === s.id ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : s.paid ? (
+                                <CheckCircle2 size={12} />
+                              ) : (
+                                <Circle size={12} />
+                              )}
+                              {s.paid ? "Paid" : "Unpaid"}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <a
+                              href={`https://wa.me/91${s.whatsapp}?text=${encodeURIComponent(
+                                `Hi ${s.full_name}, this is Nova Nurox Admin. Welcome to the Alpha Batch! 🚀`,
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
+                            >
+                              <MessageCircle size={13} /> WhatsApp
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <>
+            <div className="grid sm:grid-cols-3 gap-4 mt-6">
+              <Stat label="Total Schools" value={partnerships.length} />
+              <Stat label="Approved" value={partnerships.filter((p) => p.approved).length} accent />
+              <Stat label="Pending" value={partnerships.filter((p) => !p.approved).length} />
+            </div>
+
+            <div className="mt-6 flex items-center justify-between">
+              <h2 className="font-display text-lg font-bold">Partnership Requests</h2>
+              <button
+                onClick={loadPartnerships}
+                disabled={loadingPartnerships}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
+              >
+                <RefreshCw size={14} className={loadingPartnerships ? "animate-spin" : ""} /> Refresh
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-border bg-gradient-card overflow-hidden">
+              {loadingPartnerships ? (
+                <div className="p-12 flex justify-center">
+                  <Loader2 className="animate-spin text-primary" size={28} />
+                </div>
+              ) : partnerships.length === 0 ? (
+                <div className="p-12 text-center text-muted-foreground">
+                  <Building2 className="mx-auto text-muted-foreground/40" size={36} />
+                  <p className="mt-3 text-sm">No partnership requests yet.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-semibold">School</th>
+                        <th className="text-left px-4 py-3 font-semibold">Principal</th>
+                        <th className="text-left px-4 py-3 font-semibold">Contact</th>
+                        <th className="text-left px-4 py-3 font-semibold">WhatsApp</th>
+                        <th className="text-left px-4 py-3 font-semibold">Start Date</th>
+                        <th className="text-left px-4 py-3 font-semibold">Status</th>
+                        <th className="text-right px-4 py-3 font-semibold">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {partnerships.map((p) => (
+                        <tr
+                          key={p.id}
+                          className="border-t border-border hover:bg-secondary/30 transition-smooth"
+                        >
+                          <td className="px-4 py-3 font-medium">{p.school_name}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{p.principal_name}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{p.contact_person}</td>
+                          <td className="px-4 py-3 text-muted-foreground font-mono">+91 {p.whatsapp}</td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs">
+                            {new Date(p.preferred_start_date).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => toggleApproved(p)}
+                              disabled={updatingPartnershipId === p.id}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-smooth ${
+                                p.approved
+                                  ? "bg-primary/15 text-primary border border-primary/30 hover:shadow-neon"
+                                  : "bg-secondary text-muted-foreground border border-border hover:bg-secondary/80"
+                              }`}
+                            >
+                              {updatingPartnershipId === p.id ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : p.approved ? (
+                                <CheckCircle2 size={12} />
+                              ) : (
+                                <Circle size={12} />
+                              )}
+                              {p.approved ? "Approved" : "Pending"}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <a
+                              href={`https://wa.me/91${p.whatsapp}?text=${encodeURIComponent(
+                                `Hello ${p.contact_person}, this is Nova Nurox regarding your partnership request for ${p.school_name}.`,
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
+                            >
+                              <MessageCircle size={13} /> WhatsApp
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
