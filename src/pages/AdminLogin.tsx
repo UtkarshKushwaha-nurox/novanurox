@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { ADMIN_MFA_PATH, clearAdminSession } from "@/lib/admin";
+import { ADMIN_MFA_PATH, clearAdminSession, grantMfaEntry } from "@/lib/admin";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -41,6 +41,7 @@ export default function AdminLogin() {
     // Password OK — funnel through MFA gate. The MFA page will either
     // enroll a new TOTP factor or challenge an existing one before
     // letting the session reach the dashboard.
+    grantMfaEntry();
     navigate(ADMIN_MFA_PATH);
   }
 

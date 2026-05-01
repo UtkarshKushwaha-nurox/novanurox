@@ -5,6 +5,9 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 import {
   ADMIN_DASHBOARD_PATH,
   clearAdminSessionAndRedirect,
+  consumeMfaEntry,
+  grantDashboardEntry,
+  grantMfaEntry,
   hasAal2,
 } from "@/lib/admin";
 
@@ -43,6 +46,12 @@ export default function AdminMfa() {
       setError("Supabase isn't configured.");
       return;
     }
+    // Flow guard: this page is only reachable after a successful login.
+    // Direct URL access (no flow token) → 404.
+    if (!consumeMfaEntry()) {
+      navigate("/404", { replace: true });
+      return;
+    }
     let cancelled = false;
 
     (async () => {
@@ -58,6 +67,7 @@ export default function AdminMfa() {
       if (await hasAal2()) {
         if (!cancelled) {
           setMode("done");
+          grantDashboardEntry();
           navigate(ADMIN_DASHBOARD_PATH, { replace: true });
         }
         return;
@@ -140,6 +150,7 @@ export default function AdminMfa() {
       setError("MFA verified but session was not elevated. Please retry.");
       return;
     }
+    grantDashboardEntry();
     navigate(ADMIN_DASHBOARD_PATH, { replace: true });
   }
 

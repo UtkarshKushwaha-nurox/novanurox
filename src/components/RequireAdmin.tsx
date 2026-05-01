@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import {
   ADMIN_MFA_PATH,
+  consumeDashboardEntry,
   hasAal2,
 } from "@/lib/admin";
 
@@ -23,6 +24,12 @@ export default function RequireAdmin({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supabaseConfigured) {
       setStatus("ok");
+      return;
+    }
+    // Flow guard: dashboard is only reachable from a successful MFA verify.
+    // Direct URL typing (no flow token) → 404.
+    if (!consumeDashboardEntry()) {
+      navigate("/404", { replace: true });
       return;
     }
     let cancelled = false;
