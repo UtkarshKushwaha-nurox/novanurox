@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import {
   ADMIN_MFA_PATH,
+  consumeDashboardEntry,
   hasAal2,
 } from "@/lib/admin";
 
