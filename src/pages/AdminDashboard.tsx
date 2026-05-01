@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
+  Building2,
   CheckCircle2,
   Circle,
+  GraduationCap,
   Loader2,
   LogOut,
   MessageCircle,
@@ -10,8 +12,15 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { supabase, supabaseConfigured, type Signup } from "@/lib/supabase";
+import {
+  supabase,
+  supabaseConfigured,
+  type Signup,
+  type SchoolPartnership,
+} from "@/lib/supabase";
 import { clearAdminSessionAndRedirect } from "@/lib/admin";
+
+type AdminRole = "student" | "school";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -23,6 +32,10 @@ export default function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [role, setRole] = useState<AdminRole>("student");
+  const [partnerships, setPartnerships] = useState<SchoolPartnership[]>([]);
+  const [loadingPartnerships, setLoadingPartnerships] = useState(false);
+  const [updatingPartnershipId, setUpdatingPartnershipId] = useState<string | null>(null);
   // RLS verification state — true while we confirm Supabase accepts our JWT
   // for the protected `signups` table before showing any data UI.
   const [verifyingRls, setVerifyingRls] = useState(true);
