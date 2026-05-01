@@ -26,6 +26,12 @@ export default function RequireAdmin({ children }: { children: ReactNode }) {
       setStatus("ok");
       return;
     }
+    // Flow guard: dashboard is only reachable from a successful MFA verify.
+    // Direct URL typing (no flow token) → 404.
+    if (!consumeDashboardEntry()) {
+      navigate("/404", { replace: true });
+      return;
+    }
     let cancelled = false;
     (async () => {
       const { data } = await supabase.auth.getSession();
