@@ -29,15 +29,28 @@ function setFlow(key: string) {
   }
 }
 
+// Remember the last successful consume per key for a short window so
+// React StrictMode's double-invoke (and quick remounts) doesn't fail the
+// second call. Real direct-URL access has no prior grant AND no recent
+// consume, so it still 404s.
+const recentConsume: Record<string, number> = {};
+const RECONSUME_WINDOW_MS = 10_000;
+
 function consumeFlow(key: string): boolean {
   if (typeof window === "undefined") return false;
   try {
     const raw = window.sessionStorage.getItem(key);
-    if (!raw) return false;
-    window.sessionStorage.removeItem(key);
-    const ts = Number(raw);
-    if (!Number.isFinite(ts)) return false;
-    return Date.now() - ts < FLOW_TTL_MS;
+    if (raw) {
+      window.sessionStorage.removeItem(key);
+      const ts = Number(raw);
+      if (Number.isFinite(ts) && Date.now() - ts < FLOW_TTL_MS) {
+        recentConsume[key] = Date.now();
+        return true;
+      }
+    }
+    const recent = recentConsume[key];
+    if (recent && Date.now() - recent < RECONSUME_WINDOW_MS) return true;
+    return false;
   } catch {
     return false;
   }
