@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { ADMIN_MFA_PATH, clearAdminSession } from "@/lib/admin";
+import { ADMIN_MFA_PATH, clearAdminSession, grantMfaEntry } from "@/lib/admin";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
