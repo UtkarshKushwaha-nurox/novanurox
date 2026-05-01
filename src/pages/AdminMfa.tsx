@@ -67,6 +67,7 @@ export default function AdminMfa() {
       if (await hasAal2()) {
         if (!cancelled) {
           setMode("done");
+          grantDashboardEntry();
           navigate(ADMIN_DASHBOARD_PATH, { replace: true });
         }
         return;
