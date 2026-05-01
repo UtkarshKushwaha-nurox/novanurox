@@ -5,6 +5,9 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 import {
   ADMIN_DASHBOARD_PATH,
   clearAdminSessionAndRedirect,
+  consumeMfaEntry,
+  grantDashboardEntry,
+  grantMfaEntry,
   hasAal2,
 } from "@/lib/admin";
 
