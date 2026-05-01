@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./styles.css";
 import HomePage from "./pages/Home";
+import PartnerPage from "./pages/Partner";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminMfa from "./pages/AdminMfa";
@@ -22,6 +23,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/partner" element={<PartnerPage />} />
         <Route
           path={ADMIN_DASHBOARD_PATH}
           element={

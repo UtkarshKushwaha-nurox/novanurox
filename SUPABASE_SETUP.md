@@ -82,3 +82,46 @@ This project currently uses the Lovable preview adapter (Cloudflare Workers). Fo
 3. In `vite.config.ts` set `server: { allowedHosts: true }` and `preview: { allowedHosts: true }`.
 4. Render build command: `npm install --include=dev && npm run build`
 5. Render start command: `npm run start`
+
+## 6. School Partnerships table (for /partner page)
+
+Run this in Supabase SQL Editor:
+
+```sql
+create table public.school_partnerships (
+  id uuid primary key default gen_random_uuid(),
+  school_name text not null,
+  principal_name text not null,
+  contact_person text not null,
+  whatsapp text not null check (whatsapp ~ '^[0-9]{10}$'),
+  preferred_start_date date not null,
+  agreed_payment_model boolean not null default false,
+  approved boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table public.school_partnerships enable row level security;
+
+-- Anyone can submit a partnership request
+create policy "anyone can submit partnership"
+  on public.school_partnerships for insert
+  to anon, authenticated
+  with check (true);
+
+-- Admin-only read / update / delete
+create policy "admin can read partnerships"
+  on public.school_partnerships for select
+  to authenticated
+  using ((auth.jwt() ->> 'email') = 'nuroxindiaofficial@gmail.com');
+
+create policy "admin can update partnerships"
+  on public.school_partnerships for update
+  to authenticated
+  using  ((auth.jwt() ->> 'email') = 'nuroxindiaofficial@gmail.com')
+  with check ((auth.jwt() ->> 'email') = 'nuroxindiaofficial@gmail.com');
+
+create policy "admin can delete partnerships"
+  on public.school_partnerships for delete
+  to authenticated
+  using ((auth.jwt() ->> 'email') = 'nuroxindiaofficial@gmail.com');
+```

@@ -1,0 +1,295 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { format } from "date-fns";
+import { CalendarIcon, CheckCircle2, Loader2, Rocket, ShieldCheck } from "lucide-react";
+import { z } from "zod";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { supabase, supabaseConfigured } from "@/lib/supabase";
+
+const schema = z.object({
+  school_name: z.string().trim().min(2, "School name is required").max(160),
+  principal_name: z.string().trim().min(2, "Principal name is required").max(120),
+  contact_person: z.string().trim().min(2, "Contact person is required").max(160),
+  whatsapp: z
+    .string()
+    .trim()
+    .regex(/^[0-9]{10}$/, "Enter a 10-digit WhatsApp number"),
+  preferred_start_date: z.date({ required_error: "Pick a start date" }),
+  agreed: z.literal(true, {
+    errorMap: () => ({ message: "You must agree to the 50/50 payment model" }),
+  }),
+});
+
+export default function PartnerPage() {
+  const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [schoolName, setSchoolName] = useState("");
+  const [principalName, setPrincipalName] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [agreed, setAgreed] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const parsed = schema.safeParse({
+      school_name: schoolName,
+      principal_name: principalName,
+      contact_person: contactPerson,
+      whatsapp,
+      preferred_start_date: startDate,
+      agreed,
+    });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "Please check the form");
+      return;
+    }
+    if (!supabaseConfigured) {
+      setError("Backend not configured.");
+      return;
+    }
+    setSubmitting(true);
+    const { error: err } = await supabase.from("school_partnerships").insert({
+      school_name: parsed.data.school_name,
+      principal_name: parsed.data.principal_name,
+      contact_person: parsed.data.contact_person,
+      whatsapp: parsed.data.whatsapp,
+      preferred_start_date: format(parsed.data.preferred_start_date, "yyyy-MM-dd"),
+      agreed_payment_model: true,
+    });
+    setSubmitting(false);
+    if (err) {
+      setError(err.message);
+      return;
+    }
+    setSubmitted(true);
+  }
+
+  return (
+    <>
+      <Header />
+      <main className="pt-28 md:pt-36 pb-20">
+        <section className="container mx-auto px-4 md:px-6 max-w-3xl">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-primary">
+            <ShieldCheck size={14} /> Institutional Partnership
+          </div>
+          <h1 className="mt-5 font-display text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+            The Nova Nurox{" "}
+            <span className="text-gradient-neon">Institutional Partnership</span> Proposal
+          </h1>
+          <p className="mt-6 text-base md:text-lg text-muted-foreground leading-relaxed">
+            Nova Nurox is an AI-first education startup designed to bridge the gap between
+            classroom theory and future technology for students across India. We offer a
+            specialized <span className="text-foreground font-semibold">10-day Intensive AI
+            Bootcamp</span> specifically engineered for mobile-first learning, ensuring that
+            every student can master cutting-edge AI tools directly from their smartphones
+            without requiring expensive school computer labs. Aligned with the{" "}
+            <span className="text-foreground font-semibold">NEP 2020 framework</span>, our
+            mission is to empower <span className="text-foreground font-semibold">100
+            students per school</span> through a high-impact, small-batch approach. To make
+            this high-quality education accessible, we operate on a collaborative{" "}
+            <span className="text-foreground font-semibold">50/50 cost-sharing model</span>:
+            the total course fee of <span className="text-foreground font-semibold">₹149</span>{" "}
+            is split equally, with the school contributing{" "}
+            <span className="text-foreground font-semibold">₹75</span> from its institutional
+            fund and the parents contributing the remaining{" "}
+            <span className="text-foreground font-semibold">₹74</span>. This partnership
+            ensures both school support and parental commitment, allowing us to deliver
+            personalized 1-on-1 attention in{" "}
+            <span className="text-foreground font-semibold">5 batches of 20 students each</span>{" "}
+            over a structured <span className="text-foreground font-semibold">100-day
+            schedule</span>.
+          </p>
+
+          {!showForm && !submitted && (
+            <div className="mt-10 flex justify-center">
+              <button
+                onClick={() => setShowForm(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-gradient-neon px-7 h-12 text-sm font-bold text-background shadow-neon hover:scale-[1.02] transition-smooth"
+              >
+                <Rocket size={16} /> Partner With Us — Start Your 10-Day AI Program
+              </button>
+            </div>
+          )}
+
+          {showForm && !submitted && (
+            <form
+              onSubmit={onSubmit}
+              className="mt-10 rounded-2xl border border-border bg-gradient-card p-6 md:p-8 space-y-5"
+            >
+              <h2 className="font-display text-xl font-bold">Partnership Application</h2>
+
+              <Field label="School Name & Branch" hint="e.g., DPS, Kanpur">
+                <Input
+                  value={schoolName}
+                  onChange={(e) => setSchoolName(e.target.value)}
+                  placeholder="DPS, Kanpur"
+                  required
+                />
+              </Field>
+
+              <Field label="Principal's Full Name">
+                <Input
+                  value={principalName}
+                  onChange={(e) => setPrincipalName(e.target.value)}
+                  placeholder="Dr. A. Sharma"
+                  required
+                />
+              </Field>
+
+              <Field label="Contact Person & Designation" hint="e.g., HOD Computer Science">
+                <Input
+                  value={contactPerson}
+                  onChange={(e) => setContactPerson(e.target.value)}
+                  placeholder="R. Verma, HOD Computer Science"
+                  required
+                />
+              </Field>
+
+              <Field label="Official WhatsApp Number">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-9 items-center rounded-md border border-input bg-secondary/40 px-3 text-sm text-muted-foreground">
+                    +91
+                  </span>
+                  <Input
+                    value={whatsapp}
+                    onChange={(e) =>
+                      setWhatsapp(e.target.value.replace(/\D/g, "").slice(0, 10))
+                    }
+                    inputMode="numeric"
+                    placeholder="9876543210"
+                    required
+                  />
+                </div>
+              </Field>
+
+              <Field label="Preferred Start Date">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground",
+                      )}
+                    >
+                      <CalendarIcon className="mr-2" />
+                      {startDate ? format(startDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </Field>
+
+              <Field label="Batch Details">
+                <div className="rounded-md border border-input bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">
+                  100 Students Total | 5 Batches of 20
+                </div>
+              </Field>
+
+              <label className="flex items-start gap-3 rounded-md border border-border bg-background/40 p-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-1 h-4 w-4 accent-primary"
+                />
+                <span className="text-sm text-muted-foreground">
+                  We agree to the{" "}
+                  <span className="text-foreground font-semibold">50/50 payment model</span>{" "}
+                  (₹75/student from school; ₹74/student from parents).
+                </span>
+              </label>
+
+              {error && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-gradient-neon px-6 h-11 text-sm font-bold text-background shadow-neon hover:scale-[1.01] transition-smooth disabled:opacity-60"
+                >
+                  {submitting ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Rocket size={16} />
+                  )}
+                  Submit Partnership Request
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="inline-flex items-center justify-center rounded-md border border-border bg-card/40 px-5 h-11 text-sm font-semibold hover:bg-card transition-smooth"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {submitted && (
+            <div className="mt-10 rounded-2xl border border-primary/30 bg-gradient-card p-8 text-center">
+              <CheckCircle2 className="mx-auto text-primary" size={42} />
+              <h2 className="mt-4 font-display text-2xl font-bold">Application Received</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Thank you. Our team will reach out on WhatsApp within 24 hours to schedule
+                your onboarding call.
+              </p>
+              <Link
+                to="/"
+                className="mt-6 inline-flex items-center justify-center rounded-md border border-border bg-card/40 px-5 h-10 text-sm font-semibold hover:bg-card transition-smooth"
+              >
+                Back to Home
+              </Link>
+            </div>
+          )}
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}
+
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-sm font-semibold">
+        {label}
+        {hint && <span className="ml-2 text-xs text-muted-foreground font-normal">({hint})</span>}
+      </label>
+      {children}
+    </div>
+  );
+}

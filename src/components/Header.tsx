@@ -59,6 +59,14 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           {!onAdmin && (
+            <Link
+              to="/partner"
+              className="hidden md:inline-flex items-center justify-center rounded-md border border-primary/40 bg-primary/5 px-4 h-10 text-sm font-semibold text-primary hover:bg-primary/10 transition-smooth"
+            >
+              For Schools
+            </Link>
+          )}
+          {!onAdmin && (
             <a
               href="#join"
               className="hidden md:inline-flex items-center justify-center rounded-md bg-gradient-neon px-4 h-10 text-sm font-semibold text-background shadow-glow hover:opacity-90 transition-smooth"
