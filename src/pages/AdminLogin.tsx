@@ -41,6 +41,7 @@ export default function AdminLogin() {
     // Password OK — funnel through MFA gate. The MFA page will either
     // enroll a new TOTP factor or challenge an existing one before
     // letting the session reach the dashboard.
+    grantMfaEntry();
     navigate(ADMIN_MFA_PATH);
   }
 
