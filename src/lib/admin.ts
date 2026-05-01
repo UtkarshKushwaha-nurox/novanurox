@@ -10,6 +10,52 @@ import { supabase } from "@/lib/supabase";
 export const ADMIN_DASHBOARD_PATH = "/AdminDashboardNovaNurox";
 export const ADMIN_MFA_PATH = "/admin/mfa";
 
+// ---------------------------------------------------------------------------
+// Flow tokens — enforce the strict path: /admin/login → /admin/mfa → dashboard
+// Direct URL typing to /admin/mfa or the dashboard path will fail this check
+// and route the user to /404. Tokens live in sessionStorage so they die with
+// the tab, and are single-use (consumed on entry).
+// ---------------------------------------------------------------------------
+const MFA_FLOW_KEY = "nnx-flow-mfa";
+const DASH_FLOW_KEY = "nnx-flow-dash";
+const FLOW_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function setFlow(key: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(key, String(Date.now()));
+  } catch {
+    /* ignore */
+  }
+}
+
+function consumeFlow(key: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = window.sessionStorage.getItem(key);
+    if (!raw) return false;
+    window.sessionStorage.removeItem(key);
+    const ts = Number(raw);
+    if (!Number.isFinite(ts)) return false;
+    return Date.now() - ts < FLOW_TTL_MS;
+  } catch {
+    return false;
+  }
+}
+
+export function grantMfaEntry() {
+  setFlow(MFA_FLOW_KEY);
+}
+export function consumeMfaEntry(): boolean {
+  return consumeFlow(MFA_FLOW_KEY);
+}
+export function grantDashboardEntry() {
+  setFlow(DASH_FLOW_KEY);
+}
+export function consumeDashboardEntry(): boolean {
+  return consumeFlow(DASH_FLOW_KEY);
+}
+
 /**
  * Returns true only if the current Supabase session has been elevated to
  * AAL2 (i.e. the user has presented a verified TOTP factor in this session).
