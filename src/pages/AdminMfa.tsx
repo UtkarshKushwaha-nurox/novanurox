@@ -150,6 +150,7 @@ export default function AdminMfa() {
       setError("MFA verified but session was not elevated. Please retry.");
       return;
     }
+    grantDashboardEntry();
     navigate(ADMIN_DASHBOARD_PATH, { replace: true });
   }
 
