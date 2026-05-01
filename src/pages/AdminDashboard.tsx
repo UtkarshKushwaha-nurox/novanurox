@@ -124,6 +124,22 @@ export default function AdminDashboard() {
     if (authed) loadSignups();
   }, [authed]);
 
+  async function loadPartnerships() {
+    if (!supabaseConfigured) return;
+    setLoadingPartnerships(true);
+    const { data, error: err } = await supabase
+      .from("school_partnerships")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (err) setError(err.message);
+    else setPartnerships((data ?? []) as SchoolPartnership[]);
+    setLoadingPartnerships(false);
+  }
+
+  useEffect(() => {
+    if (authed && role === "school") loadPartnerships();
+  }, [authed, role]);
+
   async function togglePaid(s: Signup) {
     setUpdatingId(s.id);
     const { error: err, status } = await supabase
@@ -143,6 +159,20 @@ export default function AdminDashboard() {
       );
     }
     setUpdatingId(null);
+  }
+
+  async function toggleApproved(p: SchoolPartnership) {
+    setUpdatingPartnershipId(p.id);
+    const { error: err } = await supabase
+      .from("school_partnerships")
+      .update({ approved: !p.approved })
+      .eq("id", p.id);
+    if (err) setError(err.message);
+    else
+      setPartnerships((list) =>
+        list.map((x) => (x.id === p.id ? { ...x, approved: !p.approved } : x)),
+      );
+    setUpdatingPartnershipId(null);
   }
 
   async function logout() {
