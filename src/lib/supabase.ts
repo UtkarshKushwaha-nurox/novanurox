@@ -34,3 +34,15 @@ export type Signup = {
   paid: boolean;
   created_at: string;
 };
+
+export type SchoolPartnership = {
+  id: string;
+  school_name: string;
+  principal_name: string;
+  contact_person: string;
+  whatsapp: string;
+  preferred_start_date: string;
+  agreed_payment_model: boolean;
+  approved: boolean;
+  created_at: string;
+};
