@@ -46,6 +46,12 @@ export default function AdminMfa() {
       setError("Supabase isn't configured.");
       return;
     }
+    // Flow guard: this page is only reachable after a successful login.
+    // Direct URL access (no flow token) → 404.
+    if (!consumeMfaEntry()) {
+      navigate("/404", { replace: true });
+      return;
+    }
     let cancelled = false;
 
     (async () => {
