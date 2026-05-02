@@ -1,11 +1,16 @@
 import { Check } from "lucide-react";
 
 const DAYS = [
-  { d: "Day 1–3", t: "Advanced Prompt Engineering", s: "Mastering ChatGPT & Debate" },
-  { d: "Day 4–5", t: "Visual Storytelling", s: "Instant PPTs with Gamma AI" },
-  { d: "Day 6–7", t: "Digital Art Mastery", s: "Bing & Leonardo AI" },
-  { d: "Day 8–9", t: "Content Creation", s: "Viral Scripting & Video AI" },
-  { d: "Day 10", t: "Grand Finale", s: "Mega Project & Certification" },
+  { d: "Day 01", t: "The CEO Mindset", s: "ChatGPT / Gemini — Strategy & Blueprint" },
+  { d: "Day 02", t: "Market Intelligence", s: "NotebookLM — Your Private Expert Bot" },
+  { d: "Day 03", t: "Brand Visuals", s: "Nano Banana Pro — 4K Logo & Brand Photos" },
+  { d: "Day 04", t: "Content Studio", s: "Canva Magic — 30 Days of Posts & Reels" },
+  { d: "Day 05", t: "The Pitch Deck", s: "Gamma AI — Interactive Web Presentation" },
+  { d: "Day 06", t: "Global Media", s: "ElevenLabs — Voice Cloning in 30+ Languages" },
+  { d: "Day 07", t: "Executive Writing", s: "Claude Artifacts — Pro Blogs & Proposals" },
+  { d: "Day 08", t: "Deep Research", s: "Perplexity — Market Gaps & Competitor Intel" },
+  { d: "Day 09", t: "Grand Launch", s: "WhatsApp & Canva — Publish & Go Live" },
+  { d: "Day 10", t: "The Finale", s: "Winner Announcement & Awards Ceremony" },
 ];
 
 const INCLUDES = [
@@ -26,10 +31,10 @@ export function Course() {
           <span className="text-xs uppercase tracking-[0.3em] text-primary">The Course</span>
           <h2 className="mt-3 text-3xl md:text-5xl font-bold">
             Nova Nurox: The{" "}
-            <span className="text-gradient-neon">10-Day AI Co-Pilot</span> Challenge
+            <span className="text-gradient-neon">10-Day AI Business</span> Challenge
           </h2>
           <p className="mt-4 font-display text-lg text-primary">
-            From Zero to AI Hero in 10 Days.
+            Build Your Empire & Go Live in 10 Days.
           </p>
         </div>
 
