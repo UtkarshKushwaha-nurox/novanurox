@@ -98,12 +98,12 @@ export default function PartnerPage() {
             mission is to empower <span className="text-foreground font-semibold">100
             students per school</span> through a high-impact, small-batch approach. To make
             this high-quality education accessible, we operate on a collaborative{" "}
-            <span className="text-foreground font-semibold">50/50 cost-sharing model</span>:
+            <span className="text-foreground font-semibold">30/70 cost-sharing model</span>:
             the total course fee of <span className="text-foreground font-semibold">₹149</span>{" "}
-            is split equally, with the school contributing{" "}
-            <span className="text-foreground font-semibold">₹75</span> from its institutional
-            fund and the parents contributing the remaining{" "}
-            <span className="text-foreground font-semibold">₹74</span>. This partnership
+            per student is split with the school contributing{" "}
+            <span className="text-foreground font-semibold">₹45 (30%)</span> from its
+            institutional fund and the parents contributing the remaining{" "}
+            <span className="text-foreground font-semibold">₹104 (70%)</span>. This partnership
             ensures both school support and parental commitment, allowing us to deliver
             personalized 1-on-1 attention in{" "}
             <span className="text-foreground font-semibold">5 batches of 20 students each</span>{" "}
