@@ -336,11 +336,13 @@ export default function AdminDashboard() {
             <p className="mt-1 text-sm text-muted-foreground">
               {role === "student"
                 ? "Manage Alpha Batch signups, mark payments, and contact users on WhatsApp."
-                : "Review and approve incoming school partnership requests."}
+                : role === "school"
+                  ? "Review and approve incoming school partnership requests."
+                  : "Manage student enrollments, assign batches, and mark payments."}
             </p>
           </div>
 
-          <div className="inline-flex rounded-lg border border-border bg-card/40 p-1 self-start">
+          <div className="inline-flex flex-wrap rounded-lg border border-border bg-card/40 p-1 self-start gap-1">
             <button
               onClick={() => setRole("student")}
               className={`inline-flex items-center gap-1.5 rounded-md px-3 h-9 text-xs font-semibold transition-smooth ${
@@ -360,6 +362,16 @@ export default function AdminDashboard() {
               }`}
             >
               <Building2 size={14} /> School Admin
+            </button>
+            <button
+              onClick={() => setRole("enrollment")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 h-9 text-xs font-semibold transition-smooth ${
+                role === "enrollment"
+                  ? "bg-gradient-neon text-background shadow-neon"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Users size={14} /> Enrollments
             </button>
           </div>
         </div>
