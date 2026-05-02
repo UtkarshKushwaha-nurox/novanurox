@@ -216,8 +216,8 @@ export default function PartnerPage() {
                 />
                 <span className="text-sm text-muted-foreground">
                   We agree to the{" "}
-                  <span className="text-foreground font-semibold">50/50 payment model</span>{" "}
-                  (₹75/student from school; ₹74/student from parents).
+                  <span className="text-foreground font-semibold">30/70 payment model</span>{" "}
+                  (₹45/student from school — 30%; ₹104/student from parents — 70%).
                 </span>
               </label>
 
