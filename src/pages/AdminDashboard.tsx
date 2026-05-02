@@ -17,10 +17,11 @@ import {
   supabaseConfigured,
   type Signup,
   type SchoolPartnership,
+  type StudentEnrollment,
 } from "@/lib/supabase";
 import { clearAdminSessionAndRedirect } from "@/lib/admin";
 
-type AdminRole = "student" | "school";
+type AdminRole = "student" | "school" | "enrollment";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -36,6 +37,9 @@ export default function AdminDashboard() {
   const [partnerships, setPartnerships] = useState<SchoolPartnership[]>([]);
   const [loadingPartnerships, setLoadingPartnerships] = useState(false);
   const [updatingPartnershipId, setUpdatingPartnershipId] = useState<string | null>(null);
+  const [enrollments, setEnrollments] = useState<StudentEnrollment[]>([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
+  const [updatingEnrollmentId, setUpdatingEnrollmentId] = useState<string | null>(null);
   // RLS verification state — true while we confirm Supabase accepts our JWT
   // for the protected `signups` table before showing any data UI.
   const [verifyingRls, setVerifyingRls] = useState(true);
@@ -139,6 +143,50 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (authed && role === "school") loadPartnerships();
   }, [authed, role]);
+
+  async function loadEnrollments() {
+    if (!supabaseConfigured) return;
+    setLoadingEnrollments(true);
+    const { data, error: err } = await supabase
+      .from("student_enrollments")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (err) setError(err.message);
+    else setEnrollments((data ?? []) as StudentEnrollment[]);
+    setLoadingEnrollments(false);
+  }
+
+  useEffect(() => {
+    if (authed && role === "enrollment") loadEnrollments();
+  }, [authed, role]);
+
+  async function toggleEnrollmentPaid(s: StudentEnrollment) {
+    setUpdatingEnrollmentId(s.id);
+    const { error: err } = await supabase
+      .from("student_enrollments")
+      .update({ paid: !s.paid })
+      .eq("id", s.id);
+    if (err) setError(err.message);
+    else
+      setEnrollments((list) =>
+        list.map((x) => (x.id === s.id ? { ...x, paid: !s.paid } : x)),
+      );
+    setUpdatingEnrollmentId(null);
+  }
+
+  async function setEnrollmentBatch(s: StudentEnrollment, batch: number | null) {
+    setUpdatingEnrollmentId(s.id);
+    const { error: err } = await supabase
+      .from("student_enrollments")
+      .update({ batch_number: batch })
+      .eq("id", s.id);
+    if (err) setError(err.message);
+    else
+      setEnrollments((list) =>
+        list.map((x) => (x.id === s.id ? { ...x, batch_number: batch } : x)),
+      );
+    setUpdatingEnrollmentId(null);
+  }
 
   async function togglePaid(s: Signup) {
     setUpdatingId(s.id);
