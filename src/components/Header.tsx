@@ -33,12 +33,12 @@ export function Header() {
           : "bg-transparent"
       }`}
     >
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="relative h-8 w-8 rounded-md bg-gradient-neon flex items-center justify-center font-display font-bold text-background shadow-neon">
+      <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-3 sm:px-4 md:px-6">
+        <Link to="/" className="flex items-center gap-2 group min-w-0">
+          <div className="relative h-8 w-8 shrink-0 rounded-md bg-gradient-neon flex items-center justify-center font-display font-bold text-background shadow-neon">
             N
           </div>
-          <span className="font-display font-bold tracking-wide text-lg">
+          <span className="font-display font-bold tracking-wide text-base sm:text-lg truncate">
             NOVA <span className="text-gradient-neon">NUROX</span>
           </span>
         </Link>
@@ -61,7 +61,7 @@ export function Header() {
           {!onAdmin && (
             <Link
               to="/partner"
-              className="hidden md:inline-flex items-center justify-center rounded-md border border-primary/40 bg-primary/5 px-4 h-10 text-sm font-semibold text-primary hover:bg-primary/10 transition-smooth"
+              className="inline-flex items-center justify-center rounded-md border border-primary/40 bg-primary/5 px-2.5 sm:px-4 h-9 sm:h-10 text-[11px] sm:text-sm font-semibold text-primary hover:bg-primary/10 transition-smooth"
             >
               For Schools
             </Link>
@@ -69,9 +69,9 @@ export function Header() {
           {!onAdmin && (
             <a
               href="#join"
-              className="hidden md:inline-flex items-center justify-center rounded-md bg-gradient-neon px-4 h-10 text-sm font-semibold text-background shadow-glow hover:opacity-90 transition-smooth"
+              className="inline-flex items-center justify-center rounded-md bg-gradient-neon px-2.5 sm:px-4 h-9 sm:h-10 text-[11px] sm:text-sm font-semibold text-background shadow-glow hover:opacity-90 transition-smooth whitespace-nowrap"
             >
-              Join Alpha Batch
+              Join Alpha
             </a>
           )}
           {!onAdmin && (
