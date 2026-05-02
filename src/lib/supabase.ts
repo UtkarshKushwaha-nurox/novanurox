@@ -46,3 +46,14 @@ export type SchoolPartnership = {
   approved: boolean;
   created_at: string;
 };
+
+export type StudentEnrollment = {
+  id: string;
+  full_name: string;
+  class_section: string;
+  school_name: string;
+  parent_whatsapp: string;
+  paid: boolean;
+  batch_number: number | null;
+  created_at: string;
+};
