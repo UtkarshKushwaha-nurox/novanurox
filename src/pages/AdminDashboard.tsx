@@ -486,7 +486,7 @@ export default function AdminDashboard() {
               )}
             </div>
           </>
-        ) : (
+        ) : role === "school" ? (
           <>
             <div className="grid sm:grid-cols-3 gap-4 mt-6">
               <Stat label="Total Schools" value={partnerships.length} />
@@ -570,6 +570,119 @@ export default function AdminDashboard() {
                             <a
                               href={`https://wa.me/91${p.whatsapp}?text=${encodeURIComponent(
                                 `Hello ${p.contact_person}, this is Nova Nurox regarding your partnership request for ${p.school_name}.`,
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
+                            >
+                              <MessageCircle size={13} /> WhatsApp
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="grid sm:grid-cols-3 gap-4 mt-6">
+              <Stat label="Total Enrollments" value={enrollments.length} />
+              <Stat label="Paid" value={enrollments.filter((e) => e.paid).length} accent />
+              <Stat label="Unassigned" value={enrollments.filter((e) => !e.batch_number).length} />
+            </div>
+
+            <div className="mt-6 flex items-center justify-between">
+              <h2 className="font-display text-lg font-bold">Student Enrollments</h2>
+              <button
+                onClick={loadEnrollments}
+                disabled={loadingEnrollments}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
+              >
+                <RefreshCw size={14} className={loadingEnrollments ? "animate-spin" : ""} /> Refresh
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-border bg-gradient-card overflow-hidden">
+              {loadingEnrollments ? (
+                <div className="p-12 flex justify-center">
+                  <Loader2 className="animate-spin text-primary" size={28} />
+                </div>
+              ) : enrollments.length === 0 ? (
+                <div className="p-12 text-center text-muted-foreground">
+                  <Users className="mx-auto text-muted-foreground/40" size={36} />
+                  <p className="mt-3 text-sm">No enrollments yet.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-semibold">Student</th>
+                        <th className="text-left px-4 py-3 font-semibold">Class</th>
+                        <th className="text-left px-4 py-3 font-semibold">School</th>
+                        <th className="text-left px-4 py-3 font-semibold">Parent WhatsApp</th>
+                        <th className="text-left px-4 py-3 font-semibold">Batch</th>
+                        <th className="text-left px-4 py-3 font-semibold">Paid</th>
+                        <th className="text-right px-4 py-3 font-semibold">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {enrollments.map((s) => (
+                        <tr
+                          key={s.id}
+                          className="border-t border-border hover:bg-secondary/30 transition-smooth"
+                        >
+                          <td className="px-4 py-3 font-medium">{s.full_name}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{s.class_section}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{s.school_name}</td>
+                          <td className="px-4 py-3 text-muted-foreground font-mono">+91 {s.parent_whatsapp}</td>
+                          <td className="px-4 py-3">
+                            <select
+                              value={s.batch_number ?? ""}
+                              disabled={updatingEnrollmentId === s.id}
+                              onChange={(e) =>
+                                setEnrollmentBatch(
+                                  s,
+                                  e.target.value === "" ? null : Number(e.target.value),
+                                )
+                              }
+                              className="rounded-md border border-border bg-input/40 px-2 py-1 text-xs"
+                            >
+                              <option value="">—</option>
+                              {[1, 2, 3, 4, 5].map((n) => (
+                                <option key={n} value={n}>
+                                  Batch {n}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => toggleEnrollmentPaid(s)}
+                              disabled={updatingEnrollmentId === s.id}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-smooth ${
+                                s.paid
+                                  ? "bg-primary/15 text-primary border border-primary/30"
+                                  : "bg-secondary text-muted-foreground border border-border"
+                              }`}
+                            >
+                              {updatingEnrollmentId === s.id ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : s.paid ? (
+                                <CheckCircle2 size={12} />
+                              ) : (
+                                <Circle size={12} />
+                              )}
+                              {s.paid ? "Paid" : "Unpaid"}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <a
+                              href={`https://wa.me/91${s.parent_whatsapp}?text=${encodeURIComponent(
+                                `Hi, this is Nova Nurox regarding ${s.full_name}'s AI Bootcamp enrollment.`,
                               )}`}
                               target="_blank"
                               rel="noreferrer"
