@@ -22,7 +22,7 @@ const schema = z.object({
     .regex(/^[0-9]{10}$/, "Enter a 10-digit WhatsApp number"),
   preferred_start_date: z.date({ required_error: "Pick a start date" }),
   agreed: z.literal(true, {
-    errorMap: () => ({ message: "You must agree to the 50/50 payment model" }),
+    errorMap: () => ({ message: "You must agree to the 30/70 payment model" }),
   }),
 });
 
