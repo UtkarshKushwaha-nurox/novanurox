@@ -4,6 +4,7 @@ import { Loader2, ShieldCheck, Smartphone } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import {
   ADMIN_DASHBOARD_PATH,
+  ADMIN_EMAIL,
   clearAdminSessionAndRedirect,
   consumeMfaEntry,
   grantDashboardEntry,
@@ -61,7 +62,11 @@ export default function AdminMfa() {
         navigate("/admin/login", { replace: true });
         return;
       }
-      // No email allowlist — any authenticated Supabase user proceeds to MFA.
+      // Email allowlist: non-admin sessions are wiped and 404'd.
+      if (session.user?.email !== ADMIN_EMAIL) {
+        await clearAdminSessionAndRedirect("/404");
+        return;
+      }
 
       // Already MFA-verified for this session → go to dashboard.
       if (await hasAal2()) {
