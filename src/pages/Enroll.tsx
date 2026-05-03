@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { friendlyError } from "@/lib/friendlyError";
 
 const Schema = z.object({
   full_name: z.string().trim().min(2, "Enter your full name").max(80),

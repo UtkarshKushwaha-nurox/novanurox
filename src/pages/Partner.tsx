@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { friendlyError } from "@/lib/friendlyError";
 
 const schema = z.object({
   school_name: z.string().trim().min(2, "School name is required").max(160),
@@ -75,7 +76,8 @@ export default function PartnerPage() {
     });
     setSubmitting(false);
     if (err) {
-      setError(err.message);
+      if (typeof console !== "undefined") console.error("partner submit", err);
+      setError(friendlyError(err, "Could not submit your partnership request. Please try again."));
       return;
     }
     setSubmitted(true);
