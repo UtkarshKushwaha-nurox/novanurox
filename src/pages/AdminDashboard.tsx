@@ -223,6 +223,22 @@ export default function AdminDashboard() {
     setUpdatingPartnershipId(null);
   }
 
+  async function toggleAgreement(p: SchoolPartnership) {
+    setUpdatingPartnershipId(p.id);
+    const { error: err } = await supabase
+      .from("school_partnerships")
+      .update({ agreed_payment_model: !p.agreed_payment_model })
+      .eq("id", p.id);
+    if (err) setError(err.message);
+    else
+      setPartnerships((list) =>
+        list.map((x) =>
+          x.id === p.id ? { ...x, agreed_payment_model: !p.agreed_payment_model } : x,
+        ),
+      );
+    setUpdatingPartnershipId(null);
+  }
+
   async function logout() {
     await supabase.auth.signOut();
     navigate("/admin/login");
@@ -525,6 +541,8 @@ export default function AdminDashboard() {
                         <th className="text-left px-4 py-3 font-semibold">Contact</th>
                         <th className="text-left px-4 py-3 font-semibold">WhatsApp</th>
                         <th className="text-left px-4 py-3 font-semibold">Start Date</th>
+                        <th className="text-left px-4 py-3 font-semibold">Capacity</th>
+                        <th className="text-left px-4 py-3 font-semibold">Payment Agreement</th>
                         <th className="text-left px-4 py-3 font-semibold">Status</th>
                         <th className="text-right px-4 py-3 font-semibold">Action</th>
                       </tr>
@@ -545,6 +563,29 @@ export default function AdminDashboard() {
                               month: "short",
                               year: "numeric",
                             })}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground font-mono">
+                            {p.student_capacity ?? "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => toggleAgreement(p)}
+                              disabled={updatingPartnershipId === p.id}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-smooth ${
+                                p.agreed_payment_model
+                                  ? "bg-primary/15 text-primary border border-primary/30"
+                                  : "bg-destructive/15 text-destructive border border-destructive/30"
+                              }`}
+                            >
+                              {updatingPartnershipId === p.id ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : p.agreed_payment_model ? (
+                                <CheckCircle2 size={12} />
+                              ) : (
+                                <Circle size={12} />
+                              )}
+                              {p.agreed_payment_model ? "Agree" : "Disagree"}
+                            </button>
                           </td>
                           <td className="px-4 py-3">
                             <button
