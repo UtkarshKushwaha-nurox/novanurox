@@ -166,19 +166,12 @@ create policy "admin can delete enrollments"
   on public.student_enrollments for delete
   to authenticated
   using ((auth.jwt() ->> 'email') = 'nuroxindiaofficial@gmail.com');
-```
 
-After running, refresh the Supabase Table Editor. The 3 tables should appear under `public`.
-
----
-
-## 4. (Optional) Hide PII from /enroll dropdown
-
-The default policy above lets anyone read the full `school_partnerships` rows so the dropdown works. If you want to expose ONLY school names publicly (and keep principal/WhatsApp admin-only), run this and remove the `anon can read approved schools` policy above:
-
-```sql
-drop policy if exists "anon can read approved schools" on public.school_partnerships;
-
+-- =============================================================
+-- 4) PUBLIC SCHOOL-NAME LOOKUP (for /enroll dropdown)
+-- =============================================================
+-- SECURITY DEFINER RPC returns ONLY the school_name column. This is the
+-- ONLY way anonymous visitors can see partner-school data — no PII leaks.
 create or replace function public.list_partner_schools()
 returns table(school_name text)
 language sql
@@ -191,7 +184,13 @@ $$;
 grant execute on function public.list_partner_schools() to anon, authenticated;
 ```
 
-Then update `src/pages/Enroll.tsx` to call `supabase.rpc('list_partner_schools')` instead of `.from('school_partnerships').select(...)`.
+After running, refresh the Supabase Table Editor. The 3 tables should appear under `public`.
+
+---
+
+## 4. PII protection
+
+The `school_partnerships` table holds principal name, contact person, and WhatsApp numbers. The master SQL above intentionally has **no anonymous SELECT policy** on this table — anonymous visitors cannot read any rows directly. The `/enroll` page calls the `list_partner_schools()` RPC, which returns only `school_name`. Admins (`nuroxindiaofficial@gmail.com`) retain full access via the admin RLS policies.
 
 ---
 
