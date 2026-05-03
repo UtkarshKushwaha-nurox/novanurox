@@ -564,6 +564,29 @@ export default function AdminDashboard() {
                               year: "numeric",
                             })}
                           </td>
+                          <td className="px-4 py-3 text-muted-foreground font-mono">
+                            {p.student_capacity ?? "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => toggleAgreement(p)}
+                              disabled={updatingPartnershipId === p.id}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-smooth ${
+                                p.agreed_payment_model
+                                  ? "bg-primary/15 text-primary border border-primary/30"
+                                  : "bg-destructive/15 text-destructive border border-destructive/30"
+                              }`}
+                            >
+                              {updatingPartnershipId === p.id ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : p.agreed_payment_model ? (
+                                <CheckCircle2 size={12} />
+                              ) : (
+                                <Circle size={12} />
+                              )}
+                              {p.agreed_payment_model ? "Agree" : "Disagree"}
+                            </button>
+                          </td>
                           <td className="px-4 py-3">
                             <button
                               onClick={() => toggleApproved(p)}
