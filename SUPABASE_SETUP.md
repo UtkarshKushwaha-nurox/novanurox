@@ -103,15 +103,10 @@ create policy "anyone can submit partnership"
   to anon, authenticated
   with check (true);
 
--- Anyone can read just the school_name list (so /enroll dropdown works for visitors).
--- Note: PostgREST applies SELECT policies row-by-row, not column-by-column, so this
--- means the FULL row is technically visible. If you want to hide PII (principal name,
--- WhatsApp), keep this policy disabled and instead create a SECURITY DEFINER function
--- that returns only school names — see "Hide PII" section below.
-create policy "anon can read approved schools"
-  on public.school_partnerships for select
-  to anon, authenticated
-  using (true);
+-- PII protection: do NOT expose principal_name / contact_person / whatsapp to
+-- anonymous visitors. The /enroll dropdown calls the SECURITY DEFINER RPC
+-- list_partner_schools() below, which returns ONLY school_name.
+drop policy if exists "anon can read approved schools" on public.school_partnerships;
 
 -- Admin full access
 create policy "admin can read partnerships"
