@@ -209,3 +209,13 @@ Then update `src/pages/Enroll.tsx` to call `supabase.rpc('list_partner_schools')
 ## 6. Render Deployment notes
 Build: `npm install --include=dev && npm run build`
 Start: `npm run start`
+
+---
+
+## 7. Add Student Capacity column (run if upgrading)
+
+```sql
+alter table public.school_partnerships
+  add column if not exists student_capacity int
+  check (student_capacity in (20, 40, 60, 80, 100));
+```
