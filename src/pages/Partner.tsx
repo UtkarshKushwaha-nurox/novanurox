@@ -213,6 +213,21 @@ export default function PartnerPage() {
                 </div>
               </Field>
 
+              <Field label="Student Capacity" hint="How many students can your school provide?">
+                <select
+                  value={studentCapacity}
+                  onChange={(e) => setStudentCapacity(Number(e.target.value))}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm md:text-sm"
+                  required
+                >
+                  {[20, 40, 60, 80, 100].map((n) => (
+                    <option key={n} value={n}>
+                      {n} students
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
               <label className="flex items-start gap-3 rounded-md border border-border bg-background/40 p-4 cursor-pointer">
                 <input
                   type="checkbox"
