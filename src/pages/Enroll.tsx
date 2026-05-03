@@ -95,7 +95,8 @@ export default function EnrollPage() {
     });
     setSubmitting(false);
     if (error) {
-      setSubmitError(error.message);
+      if (typeof console !== "undefined") console.error("enroll submit", error);
+      setSubmitError(friendlyError(error, "Could not register. Please try again."));
       return;
     }
     setSuccess(true);

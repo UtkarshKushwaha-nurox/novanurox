@@ -2,6 +2,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { CheckCircle2, Clock, Loader2, Lock } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { friendlyError } from "@/lib/friendlyError";
 import { useSeatCount } from "@/hooks/useSeatCount";
 
 const Schema = z.object({
@@ -68,7 +69,8 @@ export function Join() {
 
     if (checkError) {
       setSubmitting(false);
-      setSubmitError(checkError.message);
+      if (typeof console !== "undefined") console.error("join check", checkError);
+      setSubmitError(friendlyError(checkError, "Could not submit. Please try again."));
       return;
     }
 
@@ -93,11 +95,12 @@ export function Join() {
     setSubmitting(false);
 
     if (error) {
+      if (typeof console !== "undefined") console.error("join submit", error);
       // Handle DB unique constraint violation
       if (error.code === "23505" || error.message.toLowerCase().includes("duplicate")) {
         setSubmitError("This email or WhatsApp number is already registered.");
       } else {
-        setSubmitError(error.message);
+        setSubmitError(friendlyError(error, "Could not submit. Please try again."));
       }
       return;
     }
