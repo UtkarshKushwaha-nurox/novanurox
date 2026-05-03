@@ -206,11 +206,15 @@ export default function AdminMfa() {
                 <li>Tap “+” and scan the QR code below</li>
                 <li>Enter the 6-digit code it generates to confirm</li>
               </ol>
-              <div
-                className="rounded-lg bg-white p-3 mx-auto w-fit"
-                // Supabase returns the QR as inline SVG markup — render directly.
-                dangerouslySetInnerHTML={{ __html: qrSvg }}
-              />
+              <div className="rounded-lg bg-white p-3 mx-auto w-fit">
+                {/* Render the Supabase-returned SVG as an image so the browser
+                    sandboxes it and ignores any embedded <script>/on* handlers. */}
+                <img
+                  src={`data:image/svg+xml;base64,${btoa(qrSvg)}`}
+                  alt="MFA QR code"
+                  className="block"
+                />
+              </div>
               {secret && (
                 <div className="text-center">
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
