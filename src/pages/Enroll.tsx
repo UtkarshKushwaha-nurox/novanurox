@@ -49,12 +49,9 @@ export default function EnrollPage() {
           "Could not load schools. Make sure the list_partner_schools() RPC exists in Supabase.",
         );
       } else {
+        const rows = (data ?? []) as Array<{ school_name: string }>;
         const names = Array.from(
-          new Set(
-            (data ?? [])
-              .map((r: { school_name: string }) => r.school_name)
-              .filter(Boolean),
-          ),
+          new Set(rows.map((r) => r.school_name).filter(Boolean)),
         );
         setSchools(names);
       }
