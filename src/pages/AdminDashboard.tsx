@@ -223,6 +223,22 @@ export default function AdminDashboard() {
     setUpdatingPartnershipId(null);
   }
 
+  async function toggleAgreement(p: SchoolPartnership) {
+    setUpdatingPartnershipId(p.id);
+    const { error: err } = await supabase
+      .from("school_partnerships")
+      .update({ agreed_payment_model: !p.agreed_payment_model })
+      .eq("id", p.id);
+    if (err) setError(err.message);
+    else
+      setPartnerships((list) =>
+        list.map((x) =>
+          x.id === p.id ? { ...x, agreed_payment_model: !p.agreed_payment_model } : x,
+        ),
+      );
+    setUpdatingPartnershipId(null);
+  }
+
   async function logout() {
     await supabase.auth.signOut();
     navigate("/admin/login");
