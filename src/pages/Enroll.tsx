@@ -40,18 +40,21 @@ export default function EnrollPage() {
         setLoadingSchools(false);
         return;
       }
-      const { data, error } = await supabase
-        .from("school_partnerships")
-        .select("school_name, approved")
-        .order("school_name", { ascending: true });
+      // Use SECURITY DEFINER RPC so anonymous visitors only see school NAMES,
+      // not principal/contact/WhatsApp PII from school_partnerships.
+      const { data, error } = await supabase.rpc("list_partner_schools");
       if (cancelled) return;
       if (error) {
         setSchoolError(
-          "Could not load schools. Make sure the school_partnerships table exists in Supabase.",
+          "Could not load schools. Make sure the list_partner_schools() RPC exists in Supabase.",
         );
       } else {
         const names = Array.from(
-          new Set((data ?? []).map((r) => r.school_name as string).filter(Boolean)),
+          new Set(
+            (data ?? [])
+              .map((r: { school_name: string }) => r.school_name)
+              .filter(Boolean),
+          ),
         );
         setSchools(names);
       }
