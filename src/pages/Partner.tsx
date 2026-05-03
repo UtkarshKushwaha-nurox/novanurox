@@ -21,6 +21,9 @@ const schema = z.object({
     .trim()
     .regex(/^[0-9]{10}$/, "Enter a 10-digit WhatsApp number"),
   preferred_start_date: z.date({ required_error: "Pick a start date" }),
+  student_capacity: z
+    .number()
+    .refine((n) => [20, 40, 60, 80, 100].includes(n), "Pick a student capacity"),
   agreed: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the 30/70 payment model" }),
   }),
@@ -37,6 +40,7 @@ export default function PartnerPage() {
   const [contactPerson, setContactPerson] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>();
+  const [studentCapacity, setStudentCapacity] = useState<number>(100);
   const [agreed, setAgreed] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -48,6 +52,7 @@ export default function PartnerPage() {
       contact_person: contactPerson,
       whatsapp,
       preferred_start_date: startDate,
+      student_capacity: studentCapacity,
       agreed,
     });
     if (!parsed.success) {
@@ -65,7 +70,8 @@ export default function PartnerPage() {
       contact_person: parsed.data.contact_person,
       whatsapp: parsed.data.whatsapp,
       preferred_start_date: format(parsed.data.preferred_start_date, "yyyy-MM-dd"),
-      agreed_payment_model: true,
+      student_capacity: parsed.data.student_capacity,
+      agreed_payment_model: parsed.data.agreed,
     });
     setSubmitting(false);
     if (err) {

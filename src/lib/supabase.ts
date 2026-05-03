@@ -43,6 +43,7 @@ export type SchoolPartnership = {
   whatsapp: string;
   preferred_start_date: string;
   agreed_payment_model: boolean;
+  student_capacity: number;
   approved: boolean;
   created_at: string;
 };
