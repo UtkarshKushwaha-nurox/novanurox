@@ -207,11 +207,7 @@ export default function PartnerPage() {
                 </Popover>
               </Field>
 
-              <Field label="Batch Details">
-                <div className="rounded-md border border-input bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">
-                  100 Students Total | 5 Batches of 20
-                </div>
-              </Field>
+
 
               <Field label="Student Capacity" hint="How many students can your school provide?">
                 <select
