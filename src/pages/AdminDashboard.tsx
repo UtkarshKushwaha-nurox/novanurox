@@ -541,6 +541,8 @@ export default function AdminDashboard() {
                         <th className="text-left px-4 py-3 font-semibold">Contact</th>
                         <th className="text-left px-4 py-3 font-semibold">WhatsApp</th>
                         <th className="text-left px-4 py-3 font-semibold">Start Date</th>
+                        <th className="text-left px-4 py-3 font-semibold">Capacity</th>
+                        <th className="text-left px-4 py-3 font-semibold">Payment Agreement</th>
                         <th className="text-left px-4 py-3 font-semibold">Status</th>
                         <th className="text-right px-4 py-3 font-semibold">Action</th>
                       </tr>
