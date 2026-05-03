@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 // works, but the dashboard itself sits at this non-guessable path.
 export const ADMIN_DASHBOARD_PATH = "/AdminDashboardNovaNurox";
 export const ADMIN_MFA_PATH = "/admin/mfa";
+export const ADMIN_EMAIL = "nuroxindiaofficial@gmail.com";
 
 // ---------------------------------------------------------------------------
 // Flow tokens — enforce the strict path: /admin/login → /admin/mfa → dashboard

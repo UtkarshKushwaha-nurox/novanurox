@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import {
+  ADMIN_EMAIL,
   ADMIN_MFA_PATH,
+  clearAdminSessionAndRedirect,
   consumeDashboardEntry,
   hasAal2,
 } from "@/lib/admin";
@@ -42,7 +44,12 @@ export default function RequireAdmin({ children }: { children: ReactNode }) {
         navigate("/admin/login", { replace: true });
         return;
       }
-      // No email allowlist — Supabase session + AAL2 (TOTP) is the gate.
+      // Email allowlist: only the configured admin email may proceed. Any
+      // other authenticated user is signed out and 404'd.
+      if (session.user?.email !== ADMIN_EMAIL) {
+        await clearAdminSessionAndRedirect("/404");
+        return;
+      }
 
       // MFA factor check. The admin email is already verified above, so it's
       // safe to route to enrollment if no verified factor exists yet — this
