@@ -48,6 +48,9 @@ export default function PartnerPage() {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [studentCapacity, setStudentCapacity] = useState<number>(100);
   const [agreed, setAgreed] = useState(false);
+  const [capacityConfirmed, setCapacityConfirmed] = useState(false);
+
+  const totalSchoolPayable = studentCapacity * SCHOOL_SHARE_PER_STUDENT;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
