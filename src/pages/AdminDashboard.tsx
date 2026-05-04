@@ -10,6 +10,7 @@ import {
   MessageCircle,
   RefreshCw,
   ShieldCheck,
+  Trash2,
   Users,
 } from "lucide-react";
 import {
