@@ -283,7 +283,7 @@ export default function EnrollPage() {
                 ) : (
                   <Rocket size={16} />
                 )}
-                Register for Batch
+                {isFull ? "Registration Closed (Full)" : "Register for Batch"}
               </button>
             </form>
           )}
