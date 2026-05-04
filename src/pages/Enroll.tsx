@@ -19,8 +19,10 @@ const Schema = z.object({
 
 type FormData = z.infer<typeof Schema>;
 
+type SchoolOption = { school_name: string; capacity: number; enrolled: number };
+
 export default function EnrollPage() {
-  const [schools, setSchools] = useState<string[]>([]);
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
   const [loadingSchools, setLoadingSchools] = useState(true);
   const [schoolError, setSchoolError] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>({
@@ -34,34 +36,40 @@ export default function EnrollPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      if (!supabaseConfigured) {
-        setLoadingSchools(false);
-        return;
-      }
-      // Use SECURITY DEFINER RPC so anonymous visitors only see school NAMES,
-      // not principal/contact/WhatsApp PII from school_partnerships.
-      const { data, error } = await supabase.rpc("list_partner_schools");
-      if (cancelled) return;
-      if (error) {
-        setSchoolError(
-          "Could not load schools. Make sure the list_partner_schools() RPC exists in Supabase.",
-        );
-      } else {
-        const rows = (data ?? []) as Array<{ school_name: string }>;
-        const names = Array.from(
-          new Set(rows.map((r) => r.school_name).filter(Boolean)),
-        );
-        setSchools(names);
-      }
+  const selected = schools.find((s) => s.school_name === form.school_name);
+  const isFull = !!selected && selected.enrolled >= selected.capacity;
+
+  async function refreshSchools() {
+    if (!supabaseConfigured) {
       setLoadingSchools(false);
+      return;
     }
-    load();
-    return () => {
-      cancelled = true;
-    };
+    // SECURITY DEFINER RPC returns only school_name + capacity + current enrolled count
+    const { data, error } = await supabase.rpc("list_partner_schools");
+    if (error) {
+      setSchoolError(
+        "Could not load schools. Make sure the list_partner_schools() RPC exists in Supabase.",
+      );
+    } else {
+      const rows = (data ?? []) as Array<{
+        school_name: string;
+        capacity: number | null;
+        enrolled: number | null;
+      }>;
+      const opts: SchoolOption[] = rows
+        .filter((r) => !!r.school_name)
+        .map((r) => ({
+          school_name: r.school_name,
+          capacity: Number(r.capacity ?? 0),
+          enrolled: Number(r.enrolled ?? 0),
+        }));
+      setSchools(opts);
+    }
+    setLoadingSchools(false);
+  }
+
+  useEffect(() => {
+    refreshSchools();
   }, []);
 
   function update<K extends keyof FormData>(k: K, v: string) {
@@ -86,6 +94,14 @@ export default function EnrollPage() {
       setSubmitError("Backend not configured.");
       return;
     }
+    // Re-check capacity right before submit (real-time guard)
+    const fresh = schools.find((s) => s.school_name === parsed.data.school_name);
+    if (fresh && fresh.capacity > 0 && fresh.enrolled >= fresh.capacity) {
+      setSubmitError(
+        `Registration for ${fresh.school_name} is full (${fresh.capacity}/${fresh.capacity}).`,
+      );
+      return;
+    }
     setSubmitting(true);
     const { error } = await supabase.from("student_enrollments").insert({
       full_name: parsed.data.full_name,
@@ -101,6 +117,7 @@ export default function EnrollPage() {
     }
     setSuccess(true);
     setForm({ full_name: "", class_section: "", school_name: "", parent_whatsapp: "" });
+    refreshSchools();
   }
 
   return (
@@ -179,20 +196,41 @@ export default function EnrollPage() {
                     </p>
                   </>
                 ) : (
-                  <select
-                    value={form.school_name}
-                    onChange={(e) => update("school_name", e.target.value)}
-                    className={`w-full h-11 rounded-md border bg-input/40 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-                      errors.school_name ? "border-destructive" : "border-border"
-                    }`}
-                  >
-                    <option value="">Select your school…</option>
-                    {schools.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
+                  <>
+                    <select
+                      value={form.school_name}
+                      onChange={(e) => update("school_name", e.target.value)}
+                      className={`w-full h-11 rounded-md border bg-input/40 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                        errors.school_name ? "border-destructive" : "border-border"
+                      }`}
+                    >
+                      <option value="">Select your school…</option>
+                      {schools.map((s) => {
+                        const full = s.enrolled >= s.capacity && s.capacity > 0;
+                        return (
+                          <option key={s.school_name} value={s.school_name} disabled={full}>
+                            {s.school_name}
+                            {s.capacity > 0
+                              ? ` — ${s.enrolled}/${s.capacity}${full ? " (FULL)" : ""}`
+                              : ""}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {selected && selected.capacity > 0 && (
+                      <p
+                        className={`text-[11px] mt-1 ${
+                          isFull ? "text-destructive font-semibold" : "text-muted-foreground"
+                        }`}
+                      >
+                        {isFull
+                          ? `Registration closed — ${selected.school_name} has reached its ${selected.capacity}-student cap.`
+                          : `Seats: ${selected.enrolled}/${selected.capacity} filled · ${
+                              selected.capacity - selected.enrolled
+                            } remaining`}
+                      </p>
+                    )}
+                  </>
                 )}
                 {errors.school_name && (
                   <span className="block text-xs text-destructive">{errors.school_name}</span>
@@ -237,15 +275,15 @@ export default function EnrollPage() {
 
               <button
                 type="submit"
-                disabled={submitting}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-gradient-neon h-12 text-sm font-bold text-background shadow-neon hover:scale-[1.01] transition-smooth disabled:opacity-60"
+                disabled={submitting || isFull}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-gradient-neon h-12 text-sm font-bold text-background shadow-neon hover:scale-[1.01] transition-smooth disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {submitting ? (
                   <Loader2 size={16} className="animate-spin" />
                 ) : (
                   <Rocket size={16} />
                 )}
-                Register for Batch
+                {isFull ? "Registration Closed (Full)" : "Register for Batch"}
               </button>
             </form>
           )}

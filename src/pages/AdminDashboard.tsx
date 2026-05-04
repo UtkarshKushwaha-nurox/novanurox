@@ -10,6 +10,7 @@ import {
   MessageCircle,
   RefreshCw,
   ShieldCheck,
+  Trash2,
   Users,
 } from "lucide-react";
 import {
@@ -43,6 +44,61 @@ export default function AdminDashboard() {
   // RLS verification state — true while we confirm Supabase accepts our JWT
   // for the protected `signups` table before showing any data UI.
   const [verifyingRls, setVerifyingRls] = useState(true);
+  // Per-table row selection (for bulk delete)
+  const [selectedSignups, setSelectedSignups] = useState<Set<string>>(new Set());
+  const [selectedPartnerships, setSelectedPartnerships] = useState<Set<string>>(new Set());
+  const [selectedEnrollments, setSelectedEnrollments] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+
+  function toggleInSet(
+    setter: React.Dispatch<React.SetStateAction<Set<string>>>,
+    id: string,
+  ) {
+    setter((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function toggleAll(
+    setter: React.Dispatch<React.SetStateAction<Set<string>>>,
+    ids: string[],
+    allSelected: boolean,
+  ) {
+    setter(allSelected ? new Set() : new Set(ids));
+  }
+
+  async function deleteRows(
+    table: "signups" | "school_partnerships" | "student_enrollments",
+    ids: string[],
+  ) {
+    if (ids.length === 0) return;
+    if (typeof window !== "undefined") {
+      const ok = window.confirm(
+        `Permanently delete ${ids.length} row${ids.length === 1 ? "" : "s"}? This cannot be undone.`,
+      );
+      if (!ok) return;
+    }
+    setDeleting(true);
+    setError(null);
+    const { error: err } = await supabase.from(table).delete().in("id", ids);
+    setDeleting(false);
+    if (err) {
+      setError("Delete failed. Please try again.");
+      return;
+    }
+    if (table === "signups") {
+      setSignups((list) => list.filter((x) => !ids.includes(x.id)));
+      setSelectedSignups(new Set());
+    } else if (table === "school_partnerships") {
+      setPartnerships((list) => list.filter((x) => !ids.includes(x.id)));
+      setSelectedPartnerships(new Set());
+    } else {
+      setEnrollments((list) => list.filter((x) => !ids.includes(x.id)));
+      setSelectedEnrollments(new Set());
+    }
+  }
   const [forbidden, setForbidden] = useState(false);
 
   // Detect Supabase / PostgREST RLS denials. PostgREST returns:
@@ -410,15 +466,26 @@ export default function AdminDashboard() {
               />
             </div>
 
-            <div className="mt-6 flex items-center justify-between">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-lg font-bold">All Signups</h2>
-              <button
-                onClick={loadSignups}
-                disabled={refreshing}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
-              >
-                <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
-              </button>
+              <div className="flex items-center gap-2">
+                {selectedSignups.size > 0 && (
+                  <button
+                    onClick={() => deleteRows("signups", Array.from(selectedSignups))}
+                    disabled={deleting}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 h-9 text-xs font-semibold hover:bg-destructive/20 transition-smooth disabled:opacity-60"
+                  >
+                    <Trash2 size={14} /> Delete Selected ({selectedSignups.size})
+                  </button>
+                )}
+                <button
+                  onClick={loadSignups}
+                  disabled={refreshing}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
+                >
+                  <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
+                </button>
+              </div>
             </div>
 
             <div className="mt-4 rounded-xl border border-border bg-gradient-card overflow-hidden">
