@@ -44,6 +44,61 @@ export default function AdminDashboard() {
   // RLS verification state — true while we confirm Supabase accepts our JWT
   // for the protected `signups` table before showing any data UI.
   const [verifyingRls, setVerifyingRls] = useState(true);
+  // Per-table row selection (for bulk delete)
+  const [selectedSignups, setSelectedSignups] = useState<Set<string>>(new Set());
+  const [selectedPartnerships, setSelectedPartnerships] = useState<Set<string>>(new Set());
+  const [selectedEnrollments, setSelectedEnrollments] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+
+  function toggleInSet(
+    setter: React.Dispatch<React.SetStateAction<Set<string>>>,
+    id: string,
+  ) {
+    setter((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function toggleAll(
+    setter: React.Dispatch<React.SetStateAction<Set<string>>>,
+    ids: string[],
+    allSelected: boolean,
+  ) {
+    setter(allSelected ? new Set() : new Set(ids));
+  }
+
+  async function deleteRows(
+    table: "signups" | "school_partnerships" | "student_enrollments",
+    ids: string[],
+  ) {
+    if (ids.length === 0) return;
+    if (typeof window !== "undefined") {
+      const ok = window.confirm(
+        `Permanently delete ${ids.length} row${ids.length === 1 ? "" : "s"}? This cannot be undone.`,
+      );
+      if (!ok) return;
+    }
+    setDeleting(true);
+    setError(null);
+    const { error: err } = await supabase.from(table).delete().in("id", ids);
+    setDeleting(false);
+    if (err) {
+      setError("Delete failed. Please try again.");
+      return;
+    }
+    if (table === "signups") {
+      setSignups((list) => list.filter((x) => !ids.includes(x.id)));
+      setSelectedSignups(new Set());
+    } else if (table === "school_partnerships") {
+      setPartnerships((list) => list.filter((x) => !ids.includes(x.id)));
+      setSelectedPartnerships(new Set());
+    } else {
+      setEnrollments((list) => list.filter((x) => !ids.includes(x.id)));
+      setSelectedEnrollments(new Set());
+    }
+  }
   const [forbidden, setForbidden] = useState(false);
 
   // Detect Supabase / PostgREST RLS denials. PostgREST returns:
