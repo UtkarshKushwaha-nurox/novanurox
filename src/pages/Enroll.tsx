@@ -275,8 +275,8 @@ export default function EnrollPage() {
 
               <button
                 type="submit"
-                disabled={submitting}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-gradient-neon h-12 text-sm font-bold text-background shadow-neon hover:scale-[1.01] transition-smooth disabled:opacity-60"
+                disabled={submitting || isFull}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-gradient-neon h-12 text-sm font-bold text-background shadow-neon hover:scale-[1.01] transition-smooth disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {submitting ? (
                   <Loader2 size={16} className="animate-spin" />
