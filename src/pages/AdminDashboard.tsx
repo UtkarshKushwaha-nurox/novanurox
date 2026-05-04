@@ -466,15 +466,26 @@ export default function AdminDashboard() {
               />
             </div>
 
-            <div className="mt-6 flex items-center justify-between">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-lg font-bold">All Signups</h2>
-              <button
-                onClick={loadSignups}
-                disabled={refreshing}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
-              >
-                <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
-              </button>
+              <div className="flex items-center gap-2">
+                {selectedSignups.size > 0 && (
+                  <button
+                    onClick={() => deleteRows("signups", Array.from(selectedSignups))}
+                    disabled={deleting}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 h-9 text-xs font-semibold hover:bg-destructive/20 transition-smooth disabled:opacity-60"
+                  >
+                    <Trash2 size={14} /> Delete Selected ({selectedSignups.size})
+                  </button>
+                )}
+                <button
+                  onClick={loadSignups}
+                  disabled={refreshing}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
+                >
+                  <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
+                </button>
+              </div>
             </div>
 
             <div className="mt-4 rounded-xl border border-border bg-gradient-card overflow-hidden">
