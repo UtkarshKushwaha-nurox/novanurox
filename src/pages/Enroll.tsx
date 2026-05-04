@@ -187,20 +187,41 @@ export default function EnrollPage() {
                     </p>
                   </>
                 ) : (
-                  <select
-                    value={form.school_name}
-                    onChange={(e) => update("school_name", e.target.value)}
-                    className={`w-full h-11 rounded-md border bg-input/40 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-                      errors.school_name ? "border-destructive" : "border-border"
-                    }`}
-                  >
-                    <option value="">Select your school…</option>
-                    {schools.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
+                  <>
+                    <select
+                      value={form.school_name}
+                      onChange={(e) => update("school_name", e.target.value)}
+                      className={`w-full h-11 rounded-md border bg-input/40 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                        errors.school_name ? "border-destructive" : "border-border"
+                      }`}
+                    >
+                      <option value="">Select your school…</option>
+                      {schools.map((s) => {
+                        const full = s.enrolled >= s.capacity && s.capacity > 0;
+                        return (
+                          <option key={s.school_name} value={s.school_name} disabled={full}>
+                            {s.school_name}
+                            {s.capacity > 0
+                              ? ` — ${s.enrolled}/${s.capacity}${full ? " (FULL)" : ""}`
+                              : ""}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {selected && selected.capacity > 0 && (
+                      <p
+                        className={`text-[11px] mt-1 ${
+                          isFull ? "text-destructive font-semibold" : "text-muted-foreground"
+                        }`}
+                      >
+                        {isFull
+                          ? `Registration closed — ${selected.school_name} has reached its ${selected.capacity}-student cap.`
+                          : `Seats: ${selected.enrolled}/${selected.capacity} filled · ${
+                              selected.capacity - selected.enrolled
+                            } remaining`}
+                      </p>
+                    )}
+                  </>
                 )}
                 {errors.school_name && (
                   <span className="block text-xs text-destructive">{errors.school_name}</span>
