@@ -19,8 +19,10 @@ const Schema = z.object({
 
 type FormData = z.infer<typeof Schema>;
 
+type SchoolOption = { school_name: string; capacity: number; enrolled: number };
+
 export default function EnrollPage() {
-  const [schools, setSchools] = useState<string[]>([]);
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
   const [loadingSchools, setLoadingSchools] = useState(true);
   const [schoolError, setSchoolError] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>({
@@ -34,34 +36,40 @@ export default function EnrollPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      if (!supabaseConfigured) {
-        setLoadingSchools(false);
-        return;
-      }
-      // Use SECURITY DEFINER RPC so anonymous visitors only see school NAMES,
-      // not principal/contact/WhatsApp PII from school_partnerships.
-      const { data, error } = await supabase.rpc("list_partner_schools");
-      if (cancelled) return;
-      if (error) {
-        setSchoolError(
-          "Could not load schools. Make sure the list_partner_schools() RPC exists in Supabase.",
-        );
-      } else {
-        const rows = (data ?? []) as Array<{ school_name: string }>;
-        const names = Array.from(
-          new Set(rows.map((r) => r.school_name).filter(Boolean)),
-        );
-        setSchools(names);
-      }
+  const selected = schools.find((s) => s.school_name === form.school_name);
+  const isFull = !!selected && selected.enrolled >= selected.capacity;
+
+  async function refreshSchools() {
+    if (!supabaseConfigured) {
       setLoadingSchools(false);
+      return;
     }
-    load();
-    return () => {
-      cancelled = true;
-    };
+    // SECURITY DEFINER RPC returns only school_name + capacity + current enrolled count
+    const { data, error } = await supabase.rpc("list_partner_schools");
+    if (error) {
+      setSchoolError(
+        "Could not load schools. Make sure the list_partner_schools() RPC exists in Supabase.",
+      );
+    } else {
+      const rows = (data ?? []) as Array<{
+        school_name: string;
+        capacity: number | null;
+        enrolled: number | null;
+      }>;
+      const opts: SchoolOption[] = rows
+        .filter((r) => !!r.school_name)
+        .map((r) => ({
+          school_name: r.school_name,
+          capacity: Number(r.capacity ?? 0),
+          enrolled: Number(r.enrolled ?? 0),
+        }));
+      setSchools(opts);
+    }
+    setLoadingSchools(false);
+  }
+
+  useEffect(() => {
+    refreshSchools();
   }, []);
 
   function update<K extends keyof FormData>(k: K, v: string) {
