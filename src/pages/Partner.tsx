@@ -28,12 +28,7 @@ const schema = z.object({
   agreed: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the 30/70 payment model" }),
   }),
-  capacity_confirmed: z.literal(true, {
-    errorMap: () => ({ message: "Please confirm the student count and total payable" }),
-  }),
 });
-
-const SCHOOL_SHARE_PER_STUDENT = 45; // 30% of ₹149
 
 export default function PartnerPage() {
   const [showForm, setShowForm] = useState(false);
@@ -48,9 +43,6 @@ export default function PartnerPage() {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [studentCapacity, setStudentCapacity] = useState<number>(100);
   const [agreed, setAgreed] = useState(false);
-  const [capacityConfirmed, setCapacityConfirmed] = useState(false);
-
-  const totalSchoolPayable = studentCapacity * SCHOOL_SHARE_PER_STUDENT;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,7 +55,6 @@ export default function PartnerPage() {
       preferred_start_date: startDate,
       student_capacity: studentCapacity,
       agreed,
-      capacity_confirmed: capacityConfirmed,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Please check the form");
@@ -81,7 +72,6 @@ export default function PartnerPage() {
       whatsapp: parsed.data.whatsapp,
       preferred_start_date: format(parsed.data.preferred_start_date, "yyyy-MM-dd"),
       student_capacity: parsed.data.student_capacity,
-      total_pay_amount: parsed.data.student_capacity * SCHOOL_SHARE_PER_STUDENT,
       agreed_payment_model: parsed.data.agreed,
     });
     setSubmitting(false);
@@ -220,73 +210,21 @@ export default function PartnerPage() {
               </Field>
 
 
-              {/* High-visibility black capacity + calculator block */}
-              <div className="rounded-xl bg-black text-white border border-primary/40 p-5 space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex h-6 px-2 items-center rounded-full bg-primary text-background text-[10px] font-bold uppercase tracking-wider">
-                    Step 1
-                  </span>
-                  <h3 className="font-display text-lg font-bold">Student Capacity</h3>
-                </div>
-                <p className="text-xs text-white/70">
-                  How many students can your school provide for the bootcamp? The total
-                  payable below is calculated using the 30/70 model
-                  (school pays ₹{SCHOOL_SHARE_PER_STUDENT}/student).
-                </p>
 
+              <Field label="Student Capacity" hint="How many students can your school provide?">
                 <select
                   value={studentCapacity}
-                  onChange={(e) => {
-                    setStudentCapacity(Number(e.target.value));
-                    setCapacityConfirmed(false);
-                  }}
-                  className="flex h-11 w-full rounded-md border border-white/20 bg-white/5 text-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
+                  onChange={(e) => setStudentCapacity(Number(e.target.value))}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm md:text-sm"
                   required
                 >
                   {[20, 40, 60, 80, 100].map((n) => (
-                    <option key={n} value={n} className="bg-black text-white">
+                    <option key={n} value={n}>
                       {n} students
                     </option>
                   ))}
                 </select>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-lg border border-white/15 bg-white/5 p-3">
-                    <div className="text-[10px] uppercase tracking-wider text-white/60">
-                      Per student (school share)
-                    </div>
-                    <div className="mt-1 font-display text-xl font-bold">
-                      ₹{SCHOOL_SHARE_PER_STUDENT}
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-primary/40 bg-primary/10 p-3">
-                    <div className="text-[10px] uppercase tracking-wider text-primary">
-                      Total School Payable
-                    </div>
-                    <div className="mt-1 font-display text-xl font-bold text-primary">
-                      ₹{totalSchoolPayable.toLocaleString("en-IN")}
-                    </div>
-                  </div>
-                </div>
-
-                <label className="flex items-start gap-3 rounded-md border border-white/20 bg-white/5 p-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={capacityConfirmed}
-                    onChange={(e) => setCapacityConfirmed(e.target.checked)}
-                    className="mt-1 h-4 w-4 accent-primary"
-                  />
-                  <span className="text-xs text-white/85">
-                    I confirm our school commits to{" "}
-                    <span className="font-semibold text-white">{studentCapacity} students</span>{" "}
-                    and a Total School Payable of{" "}
-                    <span className="font-semibold text-primary">
-                      ₹{totalSchoolPayable.toLocaleString("en-IN")}
-                    </span>
-                    .
-                  </span>
-                </label>
-              </div>
+              </Field>
 
               <label className="flex items-start gap-3 rounded-md border border-border bg-background/40 p-4 cursor-pointer">
                 <input
