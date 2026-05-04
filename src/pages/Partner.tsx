@@ -63,6 +63,7 @@ export default function PartnerPage() {
       preferred_start_date: startDate,
       student_capacity: studentCapacity,
       agreed,
+      capacity_confirmed: capacityConfirmed,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Please check the form");
@@ -80,6 +81,7 @@ export default function PartnerPage() {
       whatsapp: parsed.data.whatsapp,
       preferred_start_date: format(parsed.data.preferred_start_date, "yyyy-MM-dd"),
       student_capacity: parsed.data.student_capacity,
+      total_pay_amount: parsed.data.student_capacity * SCHOOL_SHARE_PER_STUDENT,
       agreed_payment_model: parsed.data.agreed,
     });
     setSubmitting(false);
