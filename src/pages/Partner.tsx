@@ -28,7 +28,12 @@ const schema = z.object({
   agreed: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the 30/70 payment model" }),
   }),
+  capacity_confirmed: z.literal(true, {
+    errorMap: () => ({ message: "Please confirm the student count and total payable" }),
+  }),
 });
+
+const SCHOOL_SHARE_PER_STUDENT = 45; // 30% of ₹149
 
 export default function PartnerPage() {
   const [showForm, setShowForm] = useState(false);
