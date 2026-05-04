@@ -94,6 +94,14 @@ export default function EnrollPage() {
       setSubmitError("Backend not configured.");
       return;
     }
+    // Re-check capacity right before submit (real-time guard)
+    const fresh = schools.find((s) => s.school_name === parsed.data.school_name);
+    if (fresh && fresh.capacity > 0 && fresh.enrolled >= fresh.capacity) {
+      setSubmitError(
+        `Registration for ${fresh.school_name} is full (${fresh.capacity}/${fresh.capacity}).`,
+      );
+      return;
+    }
     setSubmitting(true);
     const { error } = await supabase.from("student_enrollments").insert({
       full_name: parsed.data.full_name,
@@ -109,6 +117,7 @@ export default function EnrollPage() {
     }
     setSuccess(true);
     setForm({ full_name: "", class_section: "", school_name: "", parent_whatsapp: "" });
+    refreshSchools();
   }
 
   return (
