@@ -28,7 +28,14 @@ const schema = z.object({
   agreed: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the 30/70 payment model" }),
   }),
+  confirmed_capacity: z.literal(true, {
+    errorMap: () => ({
+      message: "You must confirm the chosen student count and the calculated school payable",
+    }),
+  }),
 });
+
+const SCHOOL_PER_STUDENT = 45; // 30% of ₹149 total course fee
 
 export default function PartnerPage() {
   const [showForm, setShowForm] = useState(false);
@@ -43,6 +50,7 @@ export default function PartnerPage() {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [studentCapacity, setStudentCapacity] = useState<number>(100);
   const [agreed, setAgreed] = useState(false);
+  const [confirmedCapacity, setConfirmedCapacity] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,6 +63,7 @@ export default function PartnerPage() {
       preferred_start_date: startDate,
       student_capacity: studentCapacity,
       agreed,
+      confirmed_capacity: confirmedCapacity,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Please check the form");
@@ -211,20 +220,75 @@ export default function PartnerPage() {
 
 
 
-              <Field label="Student Capacity" hint="How many students can your school provide?">
-                <select
-                  value={studentCapacity}
-                  onChange={(e) => setStudentCapacity(Number(e.target.value))}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm md:text-sm"
-                  required
-                >
-                  {[20, 40, 60, 80, 100].map((n) => (
-                    <option key={n} value={n}>
-                      {n} students
-                    </option>
-                  ))}
-                </select>
-              </Field>
+              <div className="rounded-2xl bg-black border border-primary/40 p-5 md:p-6 space-y-4 text-white shadow-neon">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-primary">
+                    Capacity & Payable
+                  </span>
+                  <span className="text-[11px] text-white/60">30/70 partnership policy</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold">Student Capacity</label>
+                  <p className="text-xs text-white/60">
+                    How many students can your school provide for this batch?
+                  </p>
+                  <select
+                    value={studentCapacity}
+                    onChange={(e) => {
+                      setStudentCapacity(Number(e.target.value));
+                      setConfirmedCapacity(false);
+                    }}
+                    className="flex h-10 w-full rounded-md border border-white/20 bg-white/5 text-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    required
+                  >
+                    {[20, 40, 60, 80, 100].map((n) => (
+                      <option key={n} value={n} className="text-black">
+                        {n} students
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="rounded-xl border border-white/15 bg-white/[0.04] p-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-white/70">
+                    <span>School share per student (30%)</span>
+                    <span className="font-mono text-white">₹{SCHOOL_PER_STUDENT}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-white/70">
+                    <span>Students chosen</span>
+                    <span className="font-mono text-white">{studentCapacity}</span>
+                  </div>
+                  <div className="h-px bg-white/10" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold">Total School Payable</span>
+                    <span className="font-display text-2xl font-bold text-gradient-neon">
+                      ₹{(studentCapacity * SCHOOL_PER_STUDENT).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-white/50">
+                    Parents pay the remaining 70% (₹104 × {studentCapacity} = ₹
+                    {(studentCapacity * 104).toLocaleString("en-IN")}) directly to Nova Nurox.
+                  </p>
+                </div>
+
+                <label className="flex items-start gap-3 rounded-md border border-white/20 bg-white/[0.03] p-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={confirmedCapacity}
+                    onChange={(e) => setConfirmedCapacity(e.target.checked)}
+                    className="mt-1 h-4 w-4 accent-primary"
+                  />
+                  <span className="text-xs text-white/85">
+                    We confirm <strong>{studentCapacity} students</strong> and agree to a school
+                    payable of{" "}
+                    <strong>
+                      ₹{(studentCapacity * SCHOOL_PER_STUDENT).toLocaleString("en-IN")}
+                    </strong>
+                    . Enrollment will be capped at this number.
+                  </span>
+                </label>
+              </div>
 
               <label className="flex items-start gap-3 rounded-md border border-border bg-background/40 p-4 cursor-pointer">
                 <input
