@@ -18,9 +18,10 @@ const Schema = z.object({
 });
 
 type FormData = z.infer<typeof Schema>;
+type SchoolOption = { school_name: string; student_capacity: number; enrolled_count: number };
 
 export default function EnrollPage() {
-  const [schools, setSchools] = useState<string[]>([]);
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
   const [loadingSchools, setLoadingSchools] = useState(true);
   const [schoolError, setSchoolError] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>({
@@ -50,11 +51,8 @@ export default function EnrollPage() {
           "Could not load schools. Make sure the list_partner_schools() RPC exists in Supabase.",
         );
       } else {
-        const rows = (data ?? []) as Array<{ school_name: string }>;
-        const names = Array.from(
-          new Set(rows.map((r) => r.school_name).filter(Boolean)),
-        );
-        setSchools(names);
+        const rows = (data ?? []) as SchoolOption[];
+        setSchools(rows.filter((r) => r.school_name));
       }
       setLoadingSchools(false);
     }
