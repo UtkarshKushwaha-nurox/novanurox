@@ -84,6 +84,11 @@ export default function EnrollPage() {
       setSubmitError("Backend not configured.");
       return;
     }
+    const sel = schools.find((x) => x.school_name === parsed.data.school_name);
+    if (sel && sel.student_capacity > 0 && sel.enrolled_count >= sel.student_capacity) {
+      setSubmitError("This school's batch is already full. Please contact us on WhatsApp.");
+      return;
+    }
     setSubmitting(true);
     const { error } = await supabase.from("student_enrollments").insert({
       full_name: parsed.data.full_name,
@@ -94,7 +99,12 @@ export default function EnrollPage() {
     setSubmitting(false);
     if (error) {
       if (typeof console !== "undefined") console.error("enroll submit", error);
-      setSubmitError(friendlyError(error, "Could not register. Please try again."));
+      const msg = (error as { message?: string }).message ?? "";
+      if (msg.toLowerCase().includes("full") || msg.toLowerCase().includes("not an approved")) {
+        setSubmitError("Registration closed for this school (capacity reached).");
+      } else {
+        setSubmitError(friendlyError(error, "Could not register. Please try again."));
+      }
       return;
     }
     setSuccess(true);
