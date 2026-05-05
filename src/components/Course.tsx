@@ -31,7 +31,7 @@ export function Course() {
           <span className="text-xs uppercase tracking-[0.3em] text-primary">The Course</span>
           <h2 className="mt-3 text-3xl md:text-5xl font-bold">
             Nova Nurox: The{" "}
-            <span className="text-gradient-neon">10-Day AI Business</span> Challenge
+            <span className="text-gradient-neon">10-Day AI Course</span> Challenge
           </h2>
           <p className="mt-4 font-display text-lg text-primary">
             Build Your Empire & Go Live in 10 Days.
