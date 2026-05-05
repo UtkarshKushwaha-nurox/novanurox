@@ -168,20 +168,71 @@ create policy "admin can delete enrollments"
   using ((auth.jwt() ->> 'email') = 'nuroxindiaofficial@gmail.com');
 
 -- =============================================================
--- 4) PUBLIC SCHOOL-NAME LOOKUP (for /enroll dropdown)
+-- 4) PUBLIC SCHOOL-NAME LOOKUP (for /enroll dropdown + capacity cap)
 -- =============================================================
--- SECURITY DEFINER RPC returns ONLY the school_name column. This is the
--- ONLY way anonymous visitors can see partner-school data — no PII leaks.
+-- SECURITY DEFINER RPC returns school_name + agreed capacity + current
+-- enrollment count. No PII (principal / contact / whatsapp) is exposed.
 create or replace function public.list_partner_schools()
-returns table(school_name text)
+returns table(school_name text, student_capacity int, enrolled_count int)
 language sql
 security definer
 set search_path = public
 as $$
-  select distinct school_name from public.school_partnerships order by school_name;
+  select
+    sp.school_name,
+    coalesce(max(sp.student_capacity), 0) as student_capacity,
+    coalesce((
+      select count(*)::int
+      from public.student_enrollments se
+      where se.school_name = sp.school_name
+    ), 0) as enrolled_count
+  from public.school_partnerships sp
+  where sp.approved = true
+  group by sp.school_name
+  order by sp.school_name;
 $$;
 
 grant execute on function public.list_partner_schools() to anon, authenticated;
+
+-- =============================================================
+-- 5) ENROLLMENT CAP TRIGGER (server-side enforcement)
+-- =============================================================
+create or replace function public.enforce_enrollment_cap()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  cap int;
+  current_count int;
+begin
+  select max(student_capacity) into cap
+    from public.school_partnerships
+    where school_name = new.school_name and approved = true;
+
+  if cap is null then
+    raise exception 'School % is not an approved partner.', new.school_name
+      using errcode = 'check_violation';
+  end if;
+
+  select count(*) into current_count
+    from public.student_enrollments
+    where school_name = new.school_name;
+
+  if current_count >= cap then
+    raise exception 'Enrollment for % is full (% / %).', new.school_name, current_count, cap
+      using errcode = 'check_violation';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_enforce_enrollment_cap on public.student_enrollments;
+create trigger trg_enforce_enrollment_cap
+  before insert on public.student_enrollments
+  for each row execute function public.enforce_enrollment_cap();
 ```
 
 After running, refresh the Supabase Table Editor. The 3 tables should appear under `public`.
@@ -190,7 +241,7 @@ After running, refresh the Supabase Table Editor. The 3 tables should appear und
 
 ## 4. PII protection
 
-The `school_partnerships` table holds principal name, contact person, and WhatsApp numbers. The master SQL above intentionally has **no anonymous SELECT policy** on this table — anonymous visitors cannot read any rows directly. The `/enroll` page calls the `list_partner_schools()` RPC, which returns only `school_name`. Admins (`nuroxindiaofficial@gmail.com`) retain full access via the admin RLS policies.
+The `school_partnerships` table holds principal name, contact person, and WhatsApp numbers. The master SQL above intentionally has **no anonymous SELECT policy** on this table — anonymous visitors cannot read any rows directly. The `/enroll` page calls the `list_partner_schools()` RPC, which returns only `school_name`, `student_capacity`, and `enrolled_count`. Admins (`nuroxindiaofficial@gmail.com`) retain full access via the admin RLS policies.
 
 ---
 

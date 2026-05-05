@@ -18,9 +18,10 @@ const Schema = z.object({
 });
 
 type FormData = z.infer<typeof Schema>;
+type SchoolOption = { school_name: string; student_capacity: number; enrolled_count: number };
 
 export default function EnrollPage() {
-  const [schools, setSchools] = useState<string[]>([]);
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
   const [loadingSchools, setLoadingSchools] = useState(true);
   const [schoolError, setSchoolError] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>({
@@ -50,11 +51,8 @@ export default function EnrollPage() {
           "Could not load schools. Make sure the list_partner_schools() RPC exists in Supabase.",
         );
       } else {
-        const rows = (data ?? []) as Array<{ school_name: string }>;
-        const names = Array.from(
-          new Set(rows.map((r) => r.school_name).filter(Boolean)),
-        );
-        setSchools(names);
+        const rows = (data ?? []) as SchoolOption[];
+        setSchools(rows.filter((r) => r.school_name));
       }
       setLoadingSchools(false);
     }
@@ -86,6 +84,11 @@ export default function EnrollPage() {
       setSubmitError("Backend not configured.");
       return;
     }
+    const sel = schools.find((x) => x.school_name === parsed.data.school_name);
+    if (sel && sel.student_capacity > 0 && sel.enrolled_count >= sel.student_capacity) {
+      setSubmitError("This school's batch is already full. Please contact us on WhatsApp.");
+      return;
+    }
     setSubmitting(true);
     const { error } = await supabase.from("student_enrollments").insert({
       full_name: parsed.data.full_name,
@@ -96,7 +99,12 @@ export default function EnrollPage() {
     setSubmitting(false);
     if (error) {
       if (typeof console !== "undefined") console.error("enroll submit", error);
-      setSubmitError(friendlyError(error, "Could not register. Please try again."));
+      const msg = (error as { message?: string }).message ?? "";
+      if (msg.toLowerCase().includes("full") || msg.toLowerCase().includes("not an approved")) {
+        setSubmitError("Registration closed for this school (capacity reached).");
+      } else {
+        setSubmitError(friendlyError(error, "Could not register. Please try again."));
+      }
       return;
     }
     setSuccess(true);
@@ -179,20 +187,44 @@ export default function EnrollPage() {
                     </p>
                   </>
                 ) : (
-                  <select
-                    value={form.school_name}
-                    onChange={(e) => update("school_name", e.target.value)}
-                    className={`w-full h-11 rounded-md border bg-input/40 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-                      errors.school_name ? "border-destructive" : "border-border"
-                    }`}
-                  >
-                    <option value="">Select your school…</option>
-                    {schools.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
+                  <>
+                    <select
+                      value={form.school_name}
+                      onChange={(e) => update("school_name", e.target.value)}
+                      className={`w-full h-11 rounded-md border bg-input/40 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                        errors.school_name ? "border-destructive" : "border-border"
+                      }`}
+                    >
+                      <option value="">Select your school…</option>
+                      {schools.map((s) => {
+                        const full = s.enrolled_count >= s.student_capacity && s.student_capacity > 0;
+                        return (
+                          <option key={s.school_name} value={s.school_name} disabled={full}>
+                            {s.school_name}
+                            {s.student_capacity > 0
+                              ? ` — ${s.enrolled_count}/${s.student_capacity}${full ? " (FULL)" : ""}`
+                              : ""}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {(() => {
+                      const sel = schools.find((x) => x.school_name === form.school_name);
+                      if (!sel) return null;
+                      const full = sel.enrolled_count >= sel.student_capacity && sel.student_capacity > 0;
+                      return (
+                        <p
+                          className={`text-[11px] ${
+                            full ? "text-destructive" : "text-muted-foreground"
+                          }`}
+                        >
+                          {full
+                            ? "This school's batch is full. Registration is closed."
+                            : `${sel.student_capacity - sel.enrolled_count} seats left of ${sel.student_capacity}.`}
+                        </p>
+                      );
+                    })()}
+                  </>
                 )}
                 {errors.school_name && (
                   <span className="block text-xs text-destructive">{errors.school_name}</span>
