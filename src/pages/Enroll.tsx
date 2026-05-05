@@ -177,20 +177,44 @@ export default function EnrollPage() {
                     </p>
                   </>
                 ) : (
-                  <select
-                    value={form.school_name}
-                    onChange={(e) => update("school_name", e.target.value)}
-                    className={`w-full h-11 rounded-md border bg-input/40 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-                      errors.school_name ? "border-destructive" : "border-border"
-                    }`}
-                  >
-                    <option value="">Select your school…</option>
-                    {schools.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
+                  <>
+                    <select
+                      value={form.school_name}
+                      onChange={(e) => update("school_name", e.target.value)}
+                      className={`w-full h-11 rounded-md border bg-input/40 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                        errors.school_name ? "border-destructive" : "border-border"
+                      }`}
+                    >
+                      <option value="">Select your school…</option>
+                      {schools.map((s) => {
+                        const full = s.enrolled_count >= s.student_capacity && s.student_capacity > 0;
+                        return (
+                          <option key={s.school_name} value={s.school_name} disabled={full}>
+                            {s.school_name}
+                            {s.student_capacity > 0
+                              ? ` — ${s.enrolled_count}/${s.student_capacity}${full ? " (FULL)" : ""}`
+                              : ""}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {(() => {
+                      const sel = schools.find((x) => x.school_name === form.school_name);
+                      if (!sel) return null;
+                      const full = sel.enrolled_count >= sel.student_capacity && sel.student_capacity > 0;
+                      return (
+                        <p
+                          className={`text-[11px] ${
+                            full ? "text-destructive" : "text-muted-foreground"
+                          }`}
+                        >
+                          {full
+                            ? "This school's batch is full. Registration is closed."
+                            : `${sel.student_capacity - sel.enrolled_count} seats left of ${sel.student_capacity}.`}
+                        </p>
+                      );
+                    })()}
+                  </>
                 )}
                 {errors.school_name && (
                   <span className="block text-xs text-destructive">{errors.school_name}</span>
