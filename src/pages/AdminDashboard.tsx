@@ -676,6 +676,14 @@ export default function AdminDashboard() {
                           key={p.id}
                           className="border-t border-border hover:bg-secondary/30 transition-smooth"
                         >
+                          <td className="px-3 py-3">
+                            <input
+                              type="checkbox"
+                              aria-label={`Select ${p.school_name}`}
+                              checked={selectedPartnerships.has(p.id)}
+                              onChange={() => setSelectedPartnerships((s) => toggleSel(s, p.id))}
+                            />
+                          </td>
                           <td className="px-4 py-3 font-medium">{p.school_name}</td>
                           <td className="px-4 py-3 text-muted-foreground">{p.principal_name}</td>
                           <td className="px-4 py-3 text-muted-foreground">{p.contact_person}</td>
@@ -689,6 +697,29 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-4 py-3 text-muted-foreground font-mono">
                             {p.student_capacity ?? "—"}
+                          </td>
+                          <td className="px-4 py-3 font-mono">
+                            ₹{(p.total_pay_amount ?? (p.student_capacity ?? 0) * 45).toLocaleString("en-IN")}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => togglePartnerPaid(p)}
+                              disabled={updatingPartnershipId === p.id}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-smooth ${
+                                p.payment_paid
+                                  ? "bg-primary/15 text-primary border border-primary/30"
+                                  : "bg-secondary text-muted-foreground border border-border"
+                              }`}
+                            >
+                              {updatingPartnershipId === p.id ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : p.payment_paid ? (
+                                <CheckCircle2 size={12} />
+                              ) : (
+                                <Circle size={12} />
+                              )}
+                              {p.payment_paid ? "Paid" : "Unpaid"}
+                            </button>
                           </td>
                           <td className="px-4 py-3">
                             <button
