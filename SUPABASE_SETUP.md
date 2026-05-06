@@ -84,10 +84,21 @@ create table if not exists public.school_partnerships (
   contact_person text not null,
   whatsapp text not null check (whatsapp ~ '^[0-9]{10}$'),
   preferred_start_date date not null,
+  student_capacity int not null default 100 check (student_capacity in (20, 40, 60, 80, 100)),
+  total_pay_amount int not null default 0,
+  payment_paid boolean not null default false,
   agreed_payment_model boolean not null default false,
   approved boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- Idempotent column adds for existing installs
+alter table public.school_partnerships
+  add column if not exists student_capacity int default 100 check (student_capacity in (20, 40, 60, 80, 100));
+alter table public.school_partnerships
+  add column if not exists total_pay_amount int not null default 0;
+alter table public.school_partnerships
+  add column if not exists payment_paid boolean not null default false;
 
 alter table public.school_partnerships enable row level security;
 
