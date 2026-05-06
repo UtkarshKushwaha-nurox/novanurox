@@ -20,7 +20,7 @@ import {
   type SchoolPartnership,
   type StudentEnrollment,
 } from "@/lib/supabase";
-import { clearAdminSessionAndRedirect } from "@/lib/admin";
+
 import { friendlyError } from "@/lib/friendlyError";
 
 type AdminRole = "student" | "school" | "enrollment";
