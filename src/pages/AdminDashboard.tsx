@@ -918,16 +918,26 @@ export default function AdminDashboard() {
                             </button>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <a
-                              href={`https://wa.me/91${s.parent_whatsapp}?text=${encodeURIComponent(
-                                `Hi, this is Nova Nurox regarding ${s.full_name}'s AI Bootcamp enrollment.`,
-                              )}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
-                            >
-                              <MessageCircle size={13} /> WhatsApp
-                            </a>
+                            <div className="inline-flex items-center gap-2 justify-end">
+                              <a
+                                href={`https://wa.me/91${s.parent_whatsapp}?text=${encodeURIComponent(
+                                  `Hi, this is Nova Nurox regarding ${s.full_name}'s AI Bootcamp enrollment.`,
+                                )}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
+                              >
+                                <MessageCircle size={13} /> WhatsApp
+                              </a>
+                              <button
+                                onClick={() => deleteRows("student_enrollments", [s.id])}
+                                disabled={deleting}
+                                className="inline-flex items-center justify-center rounded-md border border-destructive/40 bg-destructive/10 text-destructive h-8 w-8 hover:bg-destructive/20 disabled:opacity-60"
+                                aria-label="Delete row"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
