@@ -10,7 +10,6 @@ import {
   MessageCircle,
   RefreshCw,
   ShieldCheck,
-  Trash2,
   Users,
 } from "lucide-react";
 import {
@@ -20,8 +19,7 @@ import {
   type SchoolPartnership,
   type StudentEnrollment,
 } from "@/lib/supabase";
-
-import { friendlyError } from "@/lib/friendlyError";
+import { clearAdminSessionAndRedirect } from "@/lib/admin";
 
 type AdminRole = "student" | "school" | "enrollment";
 
@@ -46,59 +44,6 @@ export default function AdminDashboard() {
   // for the protected `signups` table before showing any data UI.
   const [verifyingRls, setVerifyingRls] = useState(true);
   const [forbidden, setForbidden] = useState(false);
-  const [selectedSignups, setSelectedSignups] = useState<Set<string>>(new Set());
-  const [selectedPartnerships, setSelectedPartnerships] = useState<Set<string>>(new Set());
-  const [selectedEnrollments, setSelectedEnrollments] = useState<Set<string>>(new Set());
-  const [deleting, setDeleting] = useState(false);
-
-  function toggleSel(set: Set<string>, id: string): Set<string> {
-    const next = new Set(set);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    return next;
-  }
-
-  async function deleteRows(
-    table: "signups" | "school_partnerships" | "student_enrollments",
-    ids: string[],
-  ) {
-    if (ids.length === 0) return;
-    if (!window.confirm(`Delete ${ids.length} row${ids.length === 1 ? "" : "s"}? This cannot be undone.`)) return;
-    setDeleting(true);
-    setError(null);
-    const { error: err } = await supabase.from(table).delete().in("id", ids);
-    if (err) {
-      setError(friendlyError(err, "Could not delete the selected rows."));
-      setDeleting(false);
-      return;
-    }
-    if (table === "signups") {
-      setSignups((l) => l.filter((x) => !ids.includes(x.id)));
-      setSelectedSignups(new Set());
-    } else if (table === "school_partnerships") {
-      setPartnerships((l) => l.filter((x) => !ids.includes(x.id)));
-      setSelectedPartnerships(new Set());
-    } else {
-      setEnrollments((l) => l.filter((x) => !ids.includes(x.id)));
-      setSelectedEnrollments(new Set());
-    }
-    setDeleting(false);
-  }
-
-  async function togglePartnerPaid(p: SchoolPartnership) {
-    setUpdatingPartnershipId(p.id);
-    const { error: err } = await supabase
-      .from("school_partnerships")
-      .update({ payment_paid: !p.payment_paid })
-      .eq("id", p.id);
-    if (err) setError(friendlyError(err));
-    else
-      setPartnerships((list) =>
-        list.map((x) => (x.id === p.id ? { ...x, payment_paid: !p.payment_paid } : x)),
-      );
-    setUpdatingPartnershipId(null);
-  }
-
 
   // Detect Supabase / PostgREST RLS denials. PostgREST returns:
   //   - HTTP 401/403 (status on FetchError)
@@ -169,7 +114,7 @@ export default function AdminDashboard() {
           "Access denied by Row-Level Security. Your account does not have permission to read this table.",
         );
       } else {
-        setError(friendlyError(err));
+        setError(err.message);
       }
     } else {
       setForbidden(false);
@@ -190,7 +135,7 @@ export default function AdminDashboard() {
       .from("school_partnerships")
       .select("*")
       .order("created_at", { ascending: false });
-    if (err) setError(friendlyError(err));
+    if (err) setError(err.message);
     else setPartnerships((data ?? []) as SchoolPartnership[]);
     setLoadingPartnerships(false);
   }
@@ -206,7 +151,7 @@ export default function AdminDashboard() {
       .from("student_enrollments")
       .select("*")
       .order("created_at", { ascending: false });
-    if (err) setError(friendlyError(err));
+    if (err) setError(err.message);
     else setEnrollments((data ?? []) as StudentEnrollment[]);
     setLoadingEnrollments(false);
   }
@@ -221,7 +166,7 @@ export default function AdminDashboard() {
       .from("student_enrollments")
       .update({ paid: !s.paid })
       .eq("id", s.id);
-    if (err) setError(friendlyError(err));
+    if (err) setError(err.message);
     else
       setEnrollments((list) =>
         list.map((x) => (x.id === s.id ? { ...x, paid: !s.paid } : x)),
@@ -235,7 +180,7 @@ export default function AdminDashboard() {
       .from("student_enrollments")
       .update({ batch_number: batch })
       .eq("id", s.id);
-    if (err) setError(friendlyError(err));
+    if (err) setError(err.message);
     else
       setEnrollments((list) =>
         list.map((x) => (x.id === s.id ? { ...x, batch_number: batch } : x)),
@@ -254,7 +199,7 @@ export default function AdminDashboard() {
       if (isForbiddenError(errWithStatus)) {
         setError("RLS denied this update. Admin policy may not cover UPDATE.");
       } else {
-        setError(friendlyError(err));
+        setError(err.message);
       }
     } else {
       setSignups((list) =>
@@ -270,7 +215,7 @@ export default function AdminDashboard() {
       .from("school_partnerships")
       .update({ approved: !p.approved })
       .eq("id", p.id);
-    if (err) setError(friendlyError(err));
+    if (err) setError(err.message);
     else
       setPartnerships((list) =>
         list.map((x) => (x.id === p.id ? { ...x, approved: !p.approved } : x)),
@@ -284,7 +229,7 @@ export default function AdminDashboard() {
       .from("school_partnerships")
       .update({ agreed_payment_model: !p.agreed_payment_model })
       .eq("id", p.id);
-    if (err) setError(friendlyError(err));
+    if (err) setError(err.message);
     else
       setPartnerships((list) =>
         list.map((x) =>
@@ -465,26 +410,15 @@ export default function AdminDashboard() {
               />
             </div>
 
-            <div className="mt-6 flex items-center justify-between gap-3 flex-wrap">
+            <div className="mt-6 flex items-center justify-between">
               <h2 className="font-display text-lg font-bold">All Signups</h2>
-              <div className="flex items-center gap-2">
-                {selectedSignups.size > 0 && (
-                  <button
-                    onClick={() => deleteRows("signups", Array.from(selectedSignups))}
-                    disabled={deleting}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 h-9 text-xs font-semibold hover:bg-destructive/20 disabled:opacity-60"
-                  >
-                    <Trash2 size={14} /> Delete selected ({selectedSignups.size})
-                  </button>
-                )}
-                <button
-                  onClick={loadSignups}
-                  disabled={refreshing}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
-                >
-                  <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
-                </button>
-              </div>
+              <button
+                onClick={loadSignups}
+                disabled={refreshing}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
+              >
+                <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
+              </button>
             </div>
 
             <div className="mt-4 rounded-xl border border-border bg-gradient-card overflow-hidden">
@@ -502,18 +436,6 @@ export default function AdminDashboard() {
                   <table className="w-full text-sm">
                     <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
                       <tr>
-                        <th className="px-3 py-3 w-10">
-                          <input
-                            type="checkbox"
-                            aria-label="Select all"
-                            checked={signups.length > 0 && selectedSignups.size === signups.length}
-                            onChange={(e) =>
-                              setSelectedSignups(
-                                e.target.checked ? new Set(signups.map((x) => x.id)) : new Set(),
-                              )
-                            }
-                          />
-                        </th>
                         <th className="text-left px-4 py-3 font-semibold">Name</th>
                         <th className="text-left px-4 py-3 font-semibold">Email</th>
                         <th className="text-left px-4 py-3 font-semibold">WhatsApp</th>
@@ -529,14 +451,6 @@ export default function AdminDashboard() {
                           key={s.id}
                           className="border-t border-border hover:bg-secondary/30 transition-smooth"
                         >
-                          <td className="px-3 py-3">
-                            <input
-                              type="checkbox"
-                              aria-label={`Select ${s.full_name}`}
-                              checked={selectedSignups.has(s.id)}
-                              onChange={() => setSelectedSignups((p) => toggleSel(p, s.id))}
-                            />
-                          </td>
                           <td className="px-4 py-3 font-medium">{s.full_name}</td>
                           <td className="px-4 py-3 text-muted-foreground break-all">{s.email}</td>
                           <td className="px-4 py-3 text-muted-foreground font-mono">+91 {s.whatsapp}</td>
@@ -569,26 +483,16 @@ export default function AdminDashboard() {
                             </button>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <div className="inline-flex items-center gap-2 justify-end">
-                              <a
-                                href={`https://wa.me/91${s.whatsapp}?text=${encodeURIComponent(
-                                  `Hi ${s.full_name}, this is Nova Nurox Admin. Welcome to the Alpha Batch! 🚀`,
-                                )}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
-                              >
-                                <MessageCircle size={13} /> WhatsApp
-                              </a>
-                              <button
-                                onClick={() => deleteRows("signups", [s.id])}
-                                disabled={deleting}
-                                className="inline-flex items-center justify-center rounded-md border border-destructive/40 bg-destructive/10 text-destructive h-8 w-8 hover:bg-destructive/20 disabled:opacity-60"
-                                aria-label="Delete row"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            </div>
+                            <a
+                              href={`https://wa.me/91${s.whatsapp}?text=${encodeURIComponent(
+                                `Hi ${s.full_name}, this is Nova Nurox Admin. Welcome to the Alpha Batch! 🚀`,
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
+                            >
+                              <MessageCircle size={13} /> WhatsApp
+                            </a>
                           </td>
                         </tr>
                       ))}
@@ -606,26 +510,15 @@ export default function AdminDashboard() {
               <Stat label="Pending" value={partnerships.filter((p) => !p.approved).length} />
             </div>
 
-            <div className="mt-6 flex items-center justify-between gap-3 flex-wrap">
+            <div className="mt-6 flex items-center justify-between">
               <h2 className="font-display text-lg font-bold">Partnership Requests</h2>
-              <div className="flex items-center gap-2">
-                {selectedPartnerships.size > 0 && (
-                  <button
-                    onClick={() => deleteRows("school_partnerships", Array.from(selectedPartnerships))}
-                    disabled={deleting}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 h-9 text-xs font-semibold hover:bg-destructive/20 disabled:opacity-60"
-                  >
-                    <Trash2 size={14} /> Delete selected ({selectedPartnerships.size})
-                  </button>
-                )}
-                <button
-                  onClick={loadPartnerships}
-                  disabled={loadingPartnerships}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
-                >
-                  <RefreshCw size={14} className={loadingPartnerships ? "animate-spin" : ""} /> Refresh
-                </button>
-              </div>
+              <button
+                onClick={loadPartnerships}
+                disabled={loadingPartnerships}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
+              >
+                <RefreshCw size={14} className={loadingPartnerships ? "animate-spin" : ""} /> Refresh
+              </button>
             </div>
 
             <div className="mt-4 rounded-xl border border-border bg-gradient-card overflow-hidden">
@@ -643,29 +536,13 @@ export default function AdminDashboard() {
                   <table className="w-full text-sm">
                     <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
                       <tr>
-                        <th className="px-3 py-3 w-10">
-                          <input
-                            type="checkbox"
-                            aria-label="Select all"
-                            checked={partnerships.length > 0 && selectedPartnerships.size === partnerships.length}
-                            onChange={(e) =>
-                              setSelectedPartnerships(
-                                e.target.checked
-                                  ? new Set(partnerships.map((x) => x.id))
-                                  : new Set(),
-                              )
-                            }
-                          />
-                        </th>
                         <th className="text-left px-4 py-3 font-semibold">School</th>
                         <th className="text-left px-4 py-3 font-semibold">Principal</th>
                         <th className="text-left px-4 py-3 font-semibold">Contact</th>
                         <th className="text-left px-4 py-3 font-semibold">WhatsApp</th>
                         <th className="text-left px-4 py-3 font-semibold">Start Date</th>
                         <th className="text-left px-4 py-3 font-semibold">Capacity</th>
-                        <th className="text-left px-4 py-3 font-semibold">Total Pay</th>
-                        <th className="text-left px-4 py-3 font-semibold">Payment</th>
-                        <th className="text-left px-4 py-3 font-semibold">Agreement</th>
+                        <th className="text-left px-4 py-3 font-semibold">Payment Agreement</th>
                         <th className="text-left px-4 py-3 font-semibold">Status</th>
                         <th className="text-right px-4 py-3 font-semibold">Action</th>
                       </tr>
@@ -676,14 +553,6 @@ export default function AdminDashboard() {
                           key={p.id}
                           className="border-t border-border hover:bg-secondary/30 transition-smooth"
                         >
-                          <td className="px-3 py-3">
-                            <input
-                              type="checkbox"
-                              aria-label={`Select ${p.school_name}`}
-                              checked={selectedPartnerships.has(p.id)}
-                              onChange={() => setSelectedPartnerships((s) => toggleSel(s, p.id))}
-                            />
-                          </td>
                           <td className="px-4 py-3 font-medium">{p.school_name}</td>
                           <td className="px-4 py-3 text-muted-foreground">{p.principal_name}</td>
                           <td className="px-4 py-3 text-muted-foreground">{p.contact_person}</td>
@@ -697,29 +566,6 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-4 py-3 text-muted-foreground font-mono">
                             {p.student_capacity ?? "—"}
-                          </td>
-                          <td className="px-4 py-3 font-mono">
-                            ₹{(p.total_pay_amount ?? (p.student_capacity ?? 0) * 45).toLocaleString("en-IN")}
-                          </td>
-                          <td className="px-4 py-3">
-                            <button
-                              onClick={() => togglePartnerPaid(p)}
-                              disabled={updatingPartnershipId === p.id}
-                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-smooth ${
-                                p.payment_paid
-                                  ? "bg-primary/15 text-primary border border-primary/30"
-                                  : "bg-secondary text-muted-foreground border border-border"
-                              }`}
-                            >
-                              {updatingPartnershipId === p.id ? (
-                                <Loader2 size={12} className="animate-spin" />
-                              ) : p.payment_paid ? (
-                                <CheckCircle2 size={12} />
-                              ) : (
-                                <Circle size={12} />
-                              )}
-                              {p.payment_paid ? "Paid" : "Unpaid"}
-                            </button>
                           </td>
                           <td className="px-4 py-3">
                             <button
@@ -762,26 +608,16 @@ export default function AdminDashboard() {
                             </button>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <div className="inline-flex items-center gap-2 justify-end">
-                              <a
-                                href={`https://wa.me/91${p.whatsapp}?text=${encodeURIComponent(
-                                  `Hello ${p.contact_person}, this is Nova Nurox regarding your partnership request for ${p.school_name}.`,
-                                )}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
-                              >
-                                <MessageCircle size={13} /> WhatsApp
-                              </a>
-                              <button
-                                onClick={() => deleteRows("school_partnerships", [p.id])}
-                                disabled={deleting}
-                                className="inline-flex items-center justify-center rounded-md border border-destructive/40 bg-destructive/10 text-destructive h-8 w-8 hover:bg-destructive/20 disabled:opacity-60"
-                                aria-label="Delete row"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            </div>
+                            <a
+                              href={`https://wa.me/91${p.whatsapp}?text=${encodeURIComponent(
+                                `Hello ${p.contact_person}, this is Nova Nurox regarding your partnership request for ${p.school_name}.`,
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
+                            >
+                              <MessageCircle size={13} /> WhatsApp
+                            </a>
                           </td>
                         </tr>
                       ))}
@@ -799,26 +635,15 @@ export default function AdminDashboard() {
               <Stat label="Unassigned" value={enrollments.filter((e) => !e.batch_number).length} />
             </div>
 
-            <div className="mt-6 flex items-center justify-between gap-3 flex-wrap">
+            <div className="mt-6 flex items-center justify-between">
               <h2 className="font-display text-lg font-bold">Student Enrollments</h2>
-              <div className="flex items-center gap-2">
-                {selectedEnrollments.size > 0 && (
-                  <button
-                    onClick={() => deleteRows("student_enrollments", Array.from(selectedEnrollments))}
-                    disabled={deleting}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 h-9 text-xs font-semibold hover:bg-destructive/20 disabled:opacity-60"
-                  >
-                    <Trash2 size={14} /> Delete selected ({selectedEnrollments.size})
-                  </button>
-                )}
-                <button
-                  onClick={loadEnrollments}
-                  disabled={loadingEnrollments}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
-                >
-                  <RefreshCw size={14} className={loadingEnrollments ? "animate-spin" : ""} /> Refresh
-                </button>
-              </div>
+              <button
+                onClick={loadEnrollments}
+                disabled={loadingEnrollments}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
+              >
+                <RefreshCw size={14} className={loadingEnrollments ? "animate-spin" : ""} /> Refresh
+              </button>
             </div>
 
             <div className="mt-4 rounded-xl border border-border bg-gradient-card overflow-hidden">
@@ -836,20 +661,6 @@ export default function AdminDashboard() {
                   <table className="w-full text-sm">
                     <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
                       <tr>
-                        <th className="px-3 py-3 w-10">
-                          <input
-                            type="checkbox"
-                            aria-label="Select all"
-                            checked={enrollments.length > 0 && selectedEnrollments.size === enrollments.length}
-                            onChange={(e) =>
-                              setSelectedEnrollments(
-                                e.target.checked
-                                  ? new Set(enrollments.map((x) => x.id))
-                                  : new Set(),
-                              )
-                            }
-                          />
-                        </th>
                         <th className="text-left px-4 py-3 font-semibold">Student</th>
                         <th className="text-left px-4 py-3 font-semibold">Class</th>
                         <th className="text-left px-4 py-3 font-semibold">School</th>
@@ -865,14 +676,6 @@ export default function AdminDashboard() {
                           key={s.id}
                           className="border-t border-border hover:bg-secondary/30 transition-smooth"
                         >
-                          <td className="px-3 py-3">
-                            <input
-                              type="checkbox"
-                              aria-label={`Select ${s.full_name}`}
-                              checked={selectedEnrollments.has(s.id)}
-                              onChange={() => setSelectedEnrollments((p) => toggleSel(p, s.id))}
-                            />
-                          </td>
                           <td className="px-4 py-3 font-medium">{s.full_name}</td>
                           <td className="px-4 py-3 text-muted-foreground">{s.class_section}</td>
                           <td className="px-4 py-3 text-muted-foreground">{s.school_name}</td>
@@ -918,26 +721,16 @@ export default function AdminDashboard() {
                             </button>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <div className="inline-flex items-center gap-2 justify-end">
-                              <a
-                                href={`https://wa.me/91${s.parent_whatsapp}?text=${encodeURIComponent(
-                                  `Hi, this is Nova Nurox regarding ${s.full_name}'s AI Bootcamp enrollment.`,
-                                )}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
-                              >
-                                <MessageCircle size={13} /> WhatsApp
-                              </a>
-                              <button
-                                onClick={() => deleteRows("student_enrollments", [s.id])}
-                                disabled={deleting}
-                                className="inline-flex items-center justify-center rounded-md border border-destructive/40 bg-destructive/10 text-destructive h-8 w-8 hover:bg-destructive/20 disabled:opacity-60"
-                                aria-label="Delete row"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            </div>
+                            <a
+                              href={`https://wa.me/91${s.parent_whatsapp}?text=${encodeURIComponent(
+                                `Hi, this is Nova Nurox regarding ${s.full_name}'s AI Bootcamp enrollment.`,
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] px-3 h-8 text-xs font-semibold hover:bg-[#25D366]/25 transition-smooth"
+                            >
+                              <MessageCircle size={13} /> WhatsApp
+                            </a>
                           </td>
                         </tr>
                       ))}
