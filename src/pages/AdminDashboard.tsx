@@ -799,15 +799,26 @@ export default function AdminDashboard() {
               <Stat label="Unassigned" value={enrollments.filter((e) => !e.batch_number).length} />
             </div>
 
-            <div className="mt-6 flex items-center justify-between">
+            <div className="mt-6 flex items-center justify-between gap-3 flex-wrap">
               <h2 className="font-display text-lg font-bold">Student Enrollments</h2>
-              <button
-                onClick={loadEnrollments}
-                disabled={loadingEnrollments}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
-              >
-                <RefreshCw size={14} className={loadingEnrollments ? "animate-spin" : ""} /> Refresh
-              </button>
+              <div className="flex items-center gap-2">
+                {selectedEnrollments.size > 0 && (
+                  <button
+                    onClick={() => deleteRows("student_enrollments", Array.from(selectedEnrollments))}
+                    disabled={deleting}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 h-9 text-xs font-semibold hover:bg-destructive/20 disabled:opacity-60"
+                  >
+                    <Trash2 size={14} /> Delete selected ({selectedEnrollments.size})
+                  </button>
+                )}
+                <button
+                  onClick={loadEnrollments}
+                  disabled={loadingEnrollments}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-3 h-9 text-xs font-semibold hover:bg-secondary transition-smooth disabled:opacity-60"
+                >
+                  <RefreshCw size={14} className={loadingEnrollments ? "animate-spin" : ""} /> Refresh
+                </button>
+              </div>
             </div>
 
             <div className="mt-4 rounded-xl border border-border bg-gradient-card overflow-hidden">
