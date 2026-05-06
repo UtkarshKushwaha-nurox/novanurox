@@ -44,6 +44,8 @@ export type SchoolPartnership = {
   preferred_start_date: string;
   agreed_payment_model: boolean;
   student_capacity: number;
+  total_pay_amount: number;
+  payment_paid: boolean;
   approved: boolean;
   created_at: string;
 };
