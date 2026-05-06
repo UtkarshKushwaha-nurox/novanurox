@@ -502,6 +502,18 @@ export default function AdminDashboard() {
                   <table className="w-full text-sm">
                     <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
                       <tr>
+                        <th className="px-3 py-3 w-10">
+                          <input
+                            type="checkbox"
+                            aria-label="Select all"
+                            checked={signups.length > 0 && selectedSignups.size === signups.length}
+                            onChange={(e) =>
+                              setSelectedSignups(
+                                e.target.checked ? new Set(signups.map((x) => x.id)) : new Set(),
+                              )
+                            }
+                          />
+                        </th>
                         <th className="text-left px-4 py-3 font-semibold">Name</th>
                         <th className="text-left px-4 py-3 font-semibold">Email</th>
                         <th className="text-left px-4 py-3 font-semibold">WhatsApp</th>
@@ -517,6 +529,14 @@ export default function AdminDashboard() {
                           key={s.id}
                           className="border-t border-border hover:bg-secondary/30 transition-smooth"
                         >
+                          <td className="px-3 py-3">
+                            <input
+                              type="checkbox"
+                              aria-label={`Select ${s.full_name}`}
+                              checked={selectedSignups.has(s.id)}
+                              onChange={() => setSelectedSignups((p) => toggleSel(p, s.id))}
+                            />
+                          </td>
                           <td className="px-4 py-3 font-medium">{s.full_name}</td>
                           <td className="px-4 py-3 text-muted-foreground break-all">{s.email}</td>
                           <td className="px-4 py-3 text-muted-foreground font-mono">+91 {s.whatsapp}</td>
