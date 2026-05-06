@@ -169,7 +169,7 @@ export default function AdminDashboard() {
           "Access denied by Row-Level Security. Your account does not have permission to read this table.",
         );
       } else {
-        setError(err.message);
+        setError(friendlyError(err));
       }
     } else {
       setForbidden(false);
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
       .from("school_partnerships")
       .select("*")
       .order("created_at", { ascending: false });
-    if (err) setError(err.message);
+    if (err) setError(friendlyError(err));
     else setPartnerships((data ?? []) as SchoolPartnership[]);
     setLoadingPartnerships(false);
   }
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
       .from("student_enrollments")
       .select("*")
       .order("created_at", { ascending: false });
-    if (err) setError(err.message);
+    if (err) setError(friendlyError(err));
     else setEnrollments((data ?? []) as StudentEnrollment[]);
     setLoadingEnrollments(false);
   }
@@ -221,7 +221,7 @@ export default function AdminDashboard() {
       .from("student_enrollments")
       .update({ paid: !s.paid })
       .eq("id", s.id);
-    if (err) setError(err.message);
+    if (err) setError(friendlyError(err));
     else
       setEnrollments((list) =>
         list.map((x) => (x.id === s.id ? { ...x, paid: !s.paid } : x)),
@@ -235,7 +235,7 @@ export default function AdminDashboard() {
       .from("student_enrollments")
       .update({ batch_number: batch })
       .eq("id", s.id);
-    if (err) setError(err.message);
+    if (err) setError(friendlyError(err));
     else
       setEnrollments((list) =>
         list.map((x) => (x.id === s.id ? { ...x, batch_number: batch } : x)),
@@ -254,7 +254,7 @@ export default function AdminDashboard() {
       if (isForbiddenError(errWithStatus)) {
         setError("RLS denied this update. Admin policy may not cover UPDATE.");
       } else {
-        setError(err.message);
+        setError(friendlyError(err));
       }
     } else {
       setSignups((list) =>
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
       .from("school_partnerships")
       .update({ approved: !p.approved })
       .eq("id", p.id);
-    if (err) setError(err.message);
+    if (err) setError(friendlyError(err));
     else
       setPartnerships((list) =>
         list.map((x) => (x.id === p.id ? { ...x, approved: !p.approved } : x)),
@@ -284,7 +284,7 @@ export default function AdminDashboard() {
       .from("school_partnerships")
       .update({ agreed_payment_model: !p.agreed_payment_model })
       .eq("id", p.id);
-    if (err) setError(err.message);
+    if (err) setError(friendlyError(err));
     else
       setPartnerships((list) =>
         list.map((x) =>
