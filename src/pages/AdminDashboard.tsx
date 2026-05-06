@@ -46,6 +46,59 @@ export default function AdminDashboard() {
   // for the protected `signups` table before showing any data UI.
   const [verifyingRls, setVerifyingRls] = useState(true);
   const [forbidden, setForbidden] = useState(false);
+  const [selectedSignups, setSelectedSignups] = useState<Set<string>>(new Set());
+  const [selectedPartnerships, setSelectedPartnerships] = useState<Set<string>>(new Set());
+  const [selectedEnrollments, setSelectedEnrollments] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+
+  function toggleSel(set: Set<string>, id: string): Set<string> {
+    const next = new Set(set);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    return next;
+  }
+
+  async function deleteRows(
+    table: "signups" | "school_partnerships" | "student_enrollments",
+    ids: string[],
+  ) {
+    if (ids.length === 0) return;
+    if (!window.confirm(`Delete ${ids.length} row${ids.length === 1 ? "" : "s"}? This cannot be undone.`)) return;
+    setDeleting(true);
+    setError(null);
+    const { error: err } = await supabase.from(table).delete().in("id", ids);
+    if (err) {
+      setError(friendlyError(err, "Could not delete the selected rows."));
+      setDeleting(false);
+      return;
+    }
+    if (table === "signups") {
+      setSignups((l) => l.filter((x) => !ids.includes(x.id)));
+      setSelectedSignups(new Set());
+    } else if (table === "school_partnerships") {
+      setPartnerships((l) => l.filter((x) => !ids.includes(x.id)));
+      setSelectedPartnerships(new Set());
+    } else {
+      setEnrollments((l) => l.filter((x) => !ids.includes(x.id)));
+      setSelectedEnrollments(new Set());
+    }
+    setDeleting(false);
+  }
+
+  async function togglePartnerPaid(p: SchoolPartnership) {
+    setUpdatingPartnershipId(p.id);
+    const { error: err } = await supabase
+      .from("school_partnerships")
+      .update({ payment_paid: !p.payment_paid })
+      .eq("id", p.id);
+    if (err) setError(friendlyError(err));
+    else
+      setPartnerships((list) =>
+        list.map((x) => (x.id === p.id ? { ...x, payment_paid: !p.payment_paid } : x)),
+      );
+    setUpdatingPartnershipId(null);
+  }
+
 
   // Detect Supabase / PostgREST RLS denials. PostgREST returns:
   //   - HTTP 401/403 (status on FetchError)
