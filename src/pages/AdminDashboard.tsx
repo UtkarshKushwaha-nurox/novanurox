@@ -836,6 +836,20 @@ export default function AdminDashboard() {
                   <table className="w-full text-sm">
                     <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
                       <tr>
+                        <th className="px-3 py-3 w-10">
+                          <input
+                            type="checkbox"
+                            aria-label="Select all"
+                            checked={enrollments.length > 0 && selectedEnrollments.size === enrollments.length}
+                            onChange={(e) =>
+                              setSelectedEnrollments(
+                                e.target.checked
+                                  ? new Set(enrollments.map((x) => x.id))
+                                  : new Set(),
+                              )
+                            }
+                          />
+                        </th>
                         <th className="text-left px-4 py-3 font-semibold">Student</th>
                         <th className="text-left px-4 py-3 font-semibold">Class</th>
                         <th className="text-left px-4 py-3 font-semibold">School</th>
@@ -851,6 +865,14 @@ export default function AdminDashboard() {
                           key={s.id}
                           className="border-t border-border hover:bg-secondary/30 transition-smooth"
                         >
+                          <td className="px-3 py-3">
+                            <input
+                              type="checkbox"
+                              aria-label={`Select ${s.full_name}`}
+                              checked={selectedEnrollments.has(s.id)}
+                              onChange={() => setSelectedEnrollments((p) => toggleSel(p, s.id))}
+                            />
+                          </td>
                           <td className="px-4 py-3 font-medium">{s.full_name}</td>
                           <td className="px-4 py-3 text-muted-foreground">{s.class_section}</td>
                           <td className="px-4 py-3 text-muted-foreground">{s.school_name}</td>
