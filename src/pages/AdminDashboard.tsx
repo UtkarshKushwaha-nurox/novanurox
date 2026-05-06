@@ -643,13 +643,29 @@ export default function AdminDashboard() {
                   <table className="w-full text-sm">
                     <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
                       <tr>
+                        <th className="px-3 py-3 w-10">
+                          <input
+                            type="checkbox"
+                            aria-label="Select all"
+                            checked={partnerships.length > 0 && selectedPartnerships.size === partnerships.length}
+                            onChange={(e) =>
+                              setSelectedPartnerships(
+                                e.target.checked
+                                  ? new Set(partnerships.map((x) => x.id))
+                                  : new Set(),
+                              )
+                            }
+                          />
+                        </th>
                         <th className="text-left px-4 py-3 font-semibold">School</th>
                         <th className="text-left px-4 py-3 font-semibold">Principal</th>
                         <th className="text-left px-4 py-3 font-semibold">Contact</th>
                         <th className="text-left px-4 py-3 font-semibold">WhatsApp</th>
                         <th className="text-left px-4 py-3 font-semibold">Start Date</th>
                         <th className="text-left px-4 py-3 font-semibold">Capacity</th>
-                        <th className="text-left px-4 py-3 font-semibold">Payment Agreement</th>
+                        <th className="text-left px-4 py-3 font-semibold">Total Pay</th>
+                        <th className="text-left px-4 py-3 font-semibold">Payment</th>
+                        <th className="text-left px-4 py-3 font-semibold">Agreement</th>
                         <th className="text-left px-4 py-3 font-semibold">Status</th>
                         <th className="text-right px-4 py-3 font-semibold">Action</th>
                       </tr>
