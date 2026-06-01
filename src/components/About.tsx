@@ -5,7 +5,7 @@ export function About() {
         <div className="max-w-3xl mx-auto text-center">
           <span className="text-xs uppercase tracking-[0.3em] text-primary">About</span>
           <h2 className="mt-3 text-3xl md:text-5xl font-bold">
-            Where <span className="text-gradient-neon">Curiosity</span> Meets Code
+            Where <span className="text-gradient-neon">Curiosity</span> Meets AI
           </h2>
           <p className="mt-6 text-muted-foreground md:text-lg leading-relaxed">
             Nova Nurox is an AI-first education ecosystem built for the next generation of

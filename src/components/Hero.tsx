@@ -44,11 +44,12 @@ export function Hero() {
             </a>
           </div>
 
-          <div className="mt-12 grid grid-cols-3 gap-3 max-w-xl mx-auto">
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
             {[
-              { k: "10", l: "Days" },
-              { k: "20", l: "Seats" },
-              { k: "₹149", l: "Early Bird" },
+              { k: "1", l: "Successful Batch" },
+              { k: "170+", l: "Students Taught" },
+              { k: "1", l: "School Partnership — WMI" },
+              { k: "1", l: "Academic Session" },
             ].map((s) => (
               <div
                 key={s.l}
