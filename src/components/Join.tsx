@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, Loader2, Lock } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { friendlyError } from "@/lib/friendlyError";
 import { useSeatCount } from "@/hooks/useSeatCount";
+import { RazorpayButton } from "@/components/RazorpayButton";
 
 const Schema = z.object({
   full_name: z.string().trim().min(2, "Please enter your full name").max(80),
@@ -238,6 +239,22 @@ export function Join() {
                   {submitting && <Loader2 size={16} className="animate-spin" />}
                   {isFull ? "Batch Full" : submitting ? "Confirming..." : "Confirm Your Seat"}
                 </button>
+
+                <div className="pt-2">
+                  <RazorpayButton
+                    amount={14900}
+                    label="Pay ₹149 Now"
+                    checkoutOptions={{
+                      description: "Nova Nurox Alpha Seat",
+                      prefill: {
+                        name: form.full_name,
+                        email: form.email,
+                        contact: form.whatsapp,
+                      },
+                    }}
+                    onSuccess={(paymentId) => console.log("Paid:", paymentId)}
+                  />
+                </div>
               </form>
             )}
           </div>
