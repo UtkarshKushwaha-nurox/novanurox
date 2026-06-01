@@ -1,7 +1,7 @@
 import { Trophy, Lightbulb } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import founderUtkarsh from "@/assets/founder-utkarsh.jpeg";
-import cofounderUmang from "@/assets/cofounder-umang.jpeg";
+import cofounderUmang from "@/assets/cofounder-jayant.jpeg";
 
 const FOUNDERS = [
   {
@@ -16,14 +16,14 @@ const FOUNDERS = [
     photo: founderUtkarsh,
   },
   {
-    name: "Umang Kushwaha",
+    name: "Jayant Dubey",
     role: "Co-Founder & Strategy Lead",
     quote: "Innovation is the heartbeat of Nova Nurox. 💡",
-    bio: "Umang handles strategy and operations to turn the Nova Nurox vision into reality. His focus: building India's most trusted AI-first education platform. He believes the right mentorship can turn any student into a next-gen creator.",
+    bio: "Jayant handles strategy and operations to turn the Nova Nurox vision into reality. His focus: building India's most trusted AI-first education platform. He believes the right mentorship can turn any student into a next-gen creator.",
     skills: ["Strategy", "Operations", "Mentorship", "Growth"],
     achievement: "Driving India's AI-first education movement",
     icon: Lightbulb,
-    initials: "UK",
+    initials: "JD",
     photo: cofounderUmang,
   },
 ];
