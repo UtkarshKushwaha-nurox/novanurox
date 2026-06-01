@@ -48,7 +48,7 @@ export function Hero() {
             {[
               { k: "1", l: "Successful Batch" },
               { k: "170+", l: "Students Taught" },
-              { k: "1", l: "School Partnership — WMI" },
+              { k: "1", l: "School Partnership — WMIS" },
               { k: "1", l: "Academic Session" },
             ].map((s) => (
               <div
