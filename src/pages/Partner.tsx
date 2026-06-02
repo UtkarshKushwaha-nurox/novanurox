@@ -51,9 +51,13 @@ export default function PartnerPage() {
   const [contactPerson, setContactPerson] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>();
-  const [studentCapacity, setStudentCapacity] = useState<number>(100);
+  const [capacityChoice, setCapacityChoice] = useState<string>("100");
+  const [customCapacity, setCustomCapacity] = useState<number | "">("");
+  const studentCapacity =
+    capacityChoice === "custom" ? (typeof customCapacity === "number" ? customCapacity : 0) : Number(capacityChoice);
   const [agreed, setAgreed] = useState(false);
   const [confirmedCapacity, setConfirmedCapacity] = useState(false);
+
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
