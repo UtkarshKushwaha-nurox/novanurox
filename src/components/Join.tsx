@@ -4,7 +4,7 @@ import { CheckCircle2, Clock, Loader2, Lock } from "lucide-react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { friendlyError } from "@/lib/friendlyError";
 import { useSeatCount } from "@/hooks/useSeatCount";
-import { RazorpayButton } from "@/components/RazorpayButton";
+
 
 const Schema = z.object({
   full_name: z.string().trim().min(2, "Please enter your full name").max(80),
