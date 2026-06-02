@@ -243,20 +243,46 @@ export default function PartnerPage() {
                     How many students can your school provide for this batch?
                   </p>
                   <select
-                    value={studentCapacity}
+                    value={capacityChoice}
                     onChange={(e) => {
-                      setStudentCapacity(Number(e.target.value));
+                      setCapacityChoice(e.target.value);
                       setConfirmedCapacity(false);
                     }}
                     className="flex h-10 w-full rounded-md border border-white/20 bg-white/5 text-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                     required
                   >
                     {[20, 40, 60, 80, 100].map((n) => (
-                      <option key={n} value={n} className="text-black">
+                      <option key={n} value={String(n)} className="text-black">
                         {n} students
                       </option>
                     ))}
+                    <option value="custom" className="text-black">
+                      Custom (enter below)
+                    </option>
                   </select>
+                  {capacityChoice === "custom" && (
+                    <div className="pt-2 space-y-1">
+                      <Input
+                        type="number"
+                        min={1}
+                        max={10000}
+                        value={customCapacity}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setCustomCapacity(v === "" ? "" : Math.max(0, parseInt(v, 10) || 0));
+                          setConfirmedCapacity(false);
+                        }}
+                        placeholder="Enter number of students"
+                        className="bg-white/5 border-white/20 text-white placeholder:text-white/40"
+                        required
+                      />
+                      <p className="text-[11px] text-white/60">
+                        Total course value: ₹149 × {studentCapacity || "x"} = ₹
+                        {(studentCapacity * 149).toLocaleString("en-IN")}
+                      </p>
+                    </div>
+                  )}
+
                 </div>
 
                 <div className="rounded-xl border border-white/15 bg-white/[0.04] p-4 space-y-2">
