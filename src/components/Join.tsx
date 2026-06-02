@@ -240,21 +240,6 @@ export function Join() {
                   {isFull ? "Batch Full" : submitting ? "Confirming..." : "Confirm Your Seat"}
                 </button>
 
-                <div className="pt-2">
-                  <RazorpayButton
-                    amount={14900}
-                    label="Pay ₹149 Now"
-                    checkoutOptions={{
-                      description: "Nova Nurox Alpha Seat",
-                      prefill: {
-                        name: form.full_name,
-                        email: form.email,
-                        contact: form.whatsapp,
-                      },
-                    }}
-                    onSuccess={(paymentId) => console.log("Paid:", paymentId)}
-                  />
-                </div>
               </form>
             )}
           </div>
