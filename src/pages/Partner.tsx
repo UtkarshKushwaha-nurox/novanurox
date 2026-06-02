@@ -24,7 +24,10 @@ const schema = z.object({
   preferred_start_date: z.date({ required_error: "Pick a start date" }),
   student_capacity: z
     .number()
-    .refine((n) => [20, 40, 60, 80, 100].includes(n), "Pick a student capacity"),
+    .int()
+    .min(1, "Enter a valid student count")
+    .max(10000, "Too large"),
+
   agreed: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the 30/70 payment model" }),
   }),
