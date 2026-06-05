@@ -1,6 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, User as UserIcon, X } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 const NAV = [
   { label: "Home", href: "#home" },
@@ -17,6 +19,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const onAdmin = location.pathname.startsWith("/admin");
+  const { user } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -65,6 +68,29 @@ export function Header() {
             >
               For Schools
             </Link>
+          )}
+          {!onAdmin && !user && (
+            <Link
+              to="/auth"
+              className="hidden sm:inline-flex items-center justify-center rounded-md border border-border bg-secondary/40 px-3 h-9 sm:h-10 text-[11px] sm:text-sm font-semibold text-foreground hover:bg-secondary transition-smooth"
+            >
+              Sign In
+            </Link>
+          )}
+          {!onAdmin && user && (
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground max-w-[160px] truncate">
+                <UserIcon size={14} className="text-primary shrink-0" />
+                {user.email}
+              </span>
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="inline-flex items-center justify-center rounded-md border border-border bg-secondary/40 px-3 h-9 text-xs font-semibold text-foreground hover:bg-secondary transition-smooth"
+                aria-label="Sign out"
+              >
+                <LogOut size={14} />
+              </button>
+            </div>
           )}
           {!onAdmin && (
             <a

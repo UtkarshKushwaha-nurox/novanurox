@@ -5,6 +5,7 @@ import "./styles.css";
 import HomePage from "./pages/Home";
 import PartnerPage from "./pages/Partner";
 import EnrollPage from "./pages/Enroll";
+import AuthPage from "./pages/Auth";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminMfa from "./pages/AdminMfa";
@@ -26,6 +27,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/" element={<HomePage />} />
         <Route path="/partner" element={<PartnerPage />} />
         <Route path="/enroll" element={<EnrollPage />} />
+        <Route path="/auth" element={<AuthPage />} />
         <Route
           path={ADMIN_DASHBOARD_PATH}
           element={
